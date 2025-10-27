@@ -1,6 +1,4 @@
-res://Scenes/Main.tscn
-res://Scripts/Deck.gd
-res://Scripts/CardManager.gd
-res://Scenes/InputManager.gd
-res://Scripts/PlayerHand.gd
 res://Scenes/Card.tscn
+res://Scripts/CardDatabase.gd
+res://Scripts/Deck.gd
+res://Scenes/Main.tscn
