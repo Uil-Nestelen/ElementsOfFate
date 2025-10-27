@@ -1,7 +1,8 @@
 63f7b34db8d8cdea90c76aacccf841ec
-::res://::1761566473
-::res://Assets/::1761558369
+::res://::1761567170
+::res://Assets/::1761567364
 CardSlot.png::CompressedTexture2D::2274320585709288901::1761557031::1761558369::1::::<><><>0<>0<>d239c8b88287701d3f5c7e0319371dbc<>res://.godot/imported/CardSlot.png-e9d43e4f8ba55be79b6db829726e4a98.ctex::
+Deck.png::CompressedTexture2D::5134413491281996834::1761567364::1761567364::1::::<><><>0<>0<>9af0bc19efb8fd32ef639aad1548e278<>res://.godot/imported/Deck.png-cb3d1c592304fc1ee94cbc1c8488aff0.ctex::
 FireBolt.png::CompressedTexture2D::3094377991892444441::1761132985::1761558369::1::::<><><>0<>0<>144c9731592f4448bad4bc39e6d1df5d<>res://.godot/imported/FireBolt.png-0083c0c720edb609d3afbf5530ab3cb3.ctex::
 icon.svg::CompressedTexture2D::8148845089233508151::1761132786::1761558369::1::::<><><>0<>0<>e4c7c2c3caf7d28fe0866e1362916b6c<>res://.godot/imported/icon.svg-8193eb3d66a1b5143b8bb4c28c1dc139.ctex::
 ::res://Scenes/::1761560354
