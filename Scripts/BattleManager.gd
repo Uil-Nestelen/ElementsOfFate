@@ -14,15 +14,13 @@ func _on_end_turn_button_pressed() -> void:
 func opponent_turn():
 	$"../EndTurnButton".disabled = true
 	$"../EndTurnButton".visible = false
-	
-	$"../OpponentsDeck".draw_card()
-	
+		
 	# Wait one second
 	battle_timer.start()
 	await battle_timer.timeout
 	
 	# If can draw a card, draw then wait 1 second
-	if $"../OpponentsDeck".oponnent_deck.size() != 0:
+	if $"../OpponentsDeck".oponnent_deck.size() >= 0:
 		$"../OpponentsDeck".draw_card()
 	
 	battle_timer.start()
@@ -33,6 +31,8 @@ func opponent_turn():
 	
 	
 	end_opponent_turn()
+	if $"../Deck".player_deck.size() >= 0:
+		$"../Deck".draw_card()
 
 func end_opponent_turn():
 	# Reset player deck draw

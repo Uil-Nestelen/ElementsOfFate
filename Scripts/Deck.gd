@@ -20,10 +20,6 @@ func _ready() -> void:
 
 
 func draw_card():
-	if drawn_card_this_turn:
-		return
-	
-	drawn_card_this_turn = true
 	var card_drawn_name = player_deck[0]
 	player_deck.erase(card_drawn_name)
 	
