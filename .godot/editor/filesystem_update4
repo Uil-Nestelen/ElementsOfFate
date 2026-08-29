@@ -1,6 +1,5 @@
 res://Scenes/Main.tscn
-res://Scripts/OpponentHand.gd
-res://Scripts/PlayerHand.gd
+res://Scripts/CardSlot.gd
+res://Scripts/CardManager.gd
 res://Scripts/BattleManager.gd
-res://Scripts/Deck.gd
-res://Scripts/OpponentDeck.gd
+res://Scripts/CardDatabase.gd

@@ -1,4 +1,4 @@
-const CARDS = { # Attack, Health
+const CARDS = { # Attack, Cost
 	"FireBolt" : [2, 3],
 	"BloodBolt" : [1, 1],
 	"IceShard" : [5, 7]
