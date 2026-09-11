@@ -1,6 +1,2 @@
+res://Scripts/Battle/BattleManager.gd
 res://Scenes/Main.tscn
-res://Scripts/OpponentHand.gd
-res://Scripts/PlayerHand.gd
-res://Scripts/BattleManager.gd
-res://Scripts/Deck.gd
-res://Scripts/OpponentDeck.gd
