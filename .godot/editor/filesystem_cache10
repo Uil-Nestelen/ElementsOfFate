@@ -1,10 +1,10 @@
 78098b89c88a74ebe8c20117b8754620
-::res://::1789139361
+::res://::1789139850
 ::res://Assets/::1789139361
 ::res://Data/::1789139236
-::res://Scenes/::1789139373
-Main.tscn::PackedScene::6387255892107352443::1789042632::0::1::::<><><>0<>0<><>::uid://byxbaiu317a3n::::res://Scripts/CardManager.gd<>uid://cqxr23gt4xnxo::::res://Scripts/PlayerHand.gd<>uid://caapvtlop5cvu::::res://Scenes/CardSlot.tscn<>uid://d2pcy8cpe5gom::::res://Scripts/Deck.gd<>uid://cfffbmkj5ix1s::::res://Assets/Deck.png<>uid://c1p8klhi6a3oc::::res://Scripts/OpponentHand.gd<>uid://bfi01v0ov0wef::::res://Scripts/InputManager.gd<>uid://btjg7be0ck51f::::res://Scripts/OpponentDeck.gd<>uid://dbeurwktyye13::::res://Scripts/BattleManager.gd
-::res://Scripts/::1789139396
-::res://Scripts/Battle/::1789139392
-BattleManager.gd::GDScript::7238954275943328448::1789138905::0::1::::<>Node<><>0<>0<><>::
+::res://Scenes/::1789139474
+Main.tscn::PackedScene::6387255892107352443::1789139463::0::1::::<><><>0<>0<><>::
+::res://Scripts/::1789139401
+::res://Scripts/Battle/::1789139460
+BattleManager.gd::GDScript::7238954275943328448::1789139460::0::1::::<>RefCounted<><>0<>0<><>::
 ::res://Scripts/Core/::1789139385
