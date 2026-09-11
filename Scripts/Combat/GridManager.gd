@@ -1,11 +1,26 @@
+class_name GridManager
 extends Node
 
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
+var width: int = 4
+var height: int = 3
+
+var tiles: Dictionary = {}
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func generate_grid() -> void:
+	for y in range(height):
+		for x in range(width):
+			var coordinate := Vector2i(x, y)
+
+			var tile := GridTile.new()
+			tile.coordinate = coordinate
+
+			add_child(tile)
+
+			tiles[coordinate] = tile
+
+	print("Grid generated: ", tiles.size(), " tiles")
+	
+	for coordinate in tiles:
+		print("Tile: ", coordinate)
