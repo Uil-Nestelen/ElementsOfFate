@@ -19,7 +19,7 @@ var player: Node
 var enemies: Node
 
 func initialize_battle() -> void:
-	current_state = BattleState.NOT_STARTED
+	_set_state(BattleState.NOT_STARTED)
 
 	turn_manager = TurnManager.new()
 	add_child(turn_manager)
@@ -29,7 +29,7 @@ func start_battle() -> void:
 	if current_state != BattleState.NOT_STARTED:
 		return
 
-	current_state = BattleState.ACTIVE
+	_set_state(BattleState.ACTIVE)
 
 	turn_manager.start_player_turn()
 
@@ -40,7 +40,7 @@ func end_battle() -> void:
 	if current_state != BattleState.ACTIVE:
 		return
 
-	current_state = BattleState.ENDED
+	_set_state(BattleState.ENDED)
 
 	turn_manager.end_battle()
 
