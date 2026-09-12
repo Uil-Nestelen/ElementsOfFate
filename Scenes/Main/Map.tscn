@@ -1,21 +1,21 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://ds0jjrpjhku52"]
 
-[ext_resource path="res://Scripts/Core/Map.gd" type="Script" id="1"]
+[ext_resource type="Script" uid="uid://b4tgecw5ler3y" path="res://Scripts/Core/Map.gd" id="1"]
 
-[node name="Map" type="Node2D"]
+[node name="Map" type="Node2D" unique_id=1951898622]
 script = ExtResource("1")
 
-[node name="Title" type="Label" parent="."]
-offset_left = 760.0
-offset_top = 400.0
-offset_right = 1160.0
-offset_bottom = 450.0
+[node name="Title" type="Label" parent="." unique_id=1018523631]
+offset_left = 747.0
+offset_top = 41.0
+offset_right = 1147.0
+offset_bottom = 91.0
 text = "MAP — Choose your path"
 horizontal_alignment = 1
 
-[node name="CombatButton" type="Button" parent="."]
-offset_left = 820.0
-offset_top = 500.0
-offset_right = 1100.0
-offset_bottom = 570.0
+[node name="CombatButton" type="Button" parent="." unique_id=58277652]
+offset_left = 807.0
+offset_top = 141.0
+offset_right = 1087.0
+offset_bottom = 211.0
 text = "Enter Combat"

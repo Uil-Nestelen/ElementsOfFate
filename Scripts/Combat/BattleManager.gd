@@ -13,6 +13,7 @@ signal battle_ended
 var current_state: BattleState = BattleState.NOT_STARTED
 
 var turn_manager: TurnManager
+var grid_manager: GridManager
 
 var grid: Node
 var player: Node
@@ -24,6 +25,24 @@ func initialize_battle() -> void:
 	turn_manager = TurnManager.new()
 	add_child(turn_manager)
 
+	grid_manager = GridManager.new()
+	add_child(grid_manager)
+
+	grid_manager.generate_grid()
+
+	player = Player.new()
+	add_child(player)
+
+	player.position = grid_manager.get_tile_global_position(player.grid_coordinate)
+
+	enemies = Node.new()
+	enemies.name = "Enemies"
+	add_child(enemies)
+
+	var enemy := Enemy.new()
+	enemies.add_child(enemy)
+
+	enemy.position = grid_manager.get_tile_global_position(enemy.grid_coordinate)
 
 func start_battle() -> void:
 	if current_state != BattleState.NOT_STARTED:
