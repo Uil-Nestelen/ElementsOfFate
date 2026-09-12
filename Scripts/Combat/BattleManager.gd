@@ -33,9 +33,10 @@ func initialize_battle() -> void:
 	player = Player.new()
 	add_child(player)
 
+	player.grid_manager = grid_manager
+
 	player.position = grid_manager.get_tile_global_position(player.grid_coordinate)
 	grid_manager.occupy_tile(player.grid_coordinate, player)
-	print(	"Player tile occupied: ",grid_manager.is_tile_occupied(player.grid_coordinate))
 
 	enemies = Node.new()
 	enemies.name = "Enemies"
@@ -44,12 +45,10 @@ func initialize_battle() -> void:
 	var enemy := Enemy.new()
 	enemies.add_child(enemy)
 
+	enemy.grid_manager = grid_manager
+
 	enemy.position = grid_manager.get_tile_global_position(enemy.grid_coordinate)
 	grid_manager.occupy_tile(enemy.grid_coordinate, enemy)
-	print(	"Enemy tile occupied: ",grid_manager.is_tile_occupied(enemy.grid_coordinate))
-	
-	var test_result := grid_manager.occupy_tile(player.grid_coordinate,enemy)
-	print("Trying to put enemy on player tile: ", test_result)
 
 func start_battle() -> void:
 	if current_state != BattleState.NOT_STARTED:

@@ -85,3 +85,21 @@ func get_tile_global_position(coordinate: Vector2i) -> Vector2:
 	return to_global(
 		tile.position + Vector2.ONE * (TILE_SIZE * 0.5)
 	)
+
+func move_occupant(occupant: Node, from_coordinate: Vector2i, to_coordinate: Vector2i) -> bool:
+	var from_tile := get_tile(from_coordinate)
+	var to_tile := get_tile(to_coordinate)
+
+	if from_tile == null or to_tile == null:
+		return false
+
+	if from_tile.occupant != occupant:
+		return false
+
+	if to_tile.occupant != null:
+		return false
+
+	from_tile.occupant = null
+	to_tile.occupant = occupant
+
+	return true
