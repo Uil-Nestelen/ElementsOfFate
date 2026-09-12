@@ -42,6 +42,40 @@ func generate_grid() -> void:
 func get_tile(coordinate: Vector2i) -> GridTile:
 	return tiles.get(coordinate)
 
+func occupy_tile(coordinate: Vector2i, occupant: Node) -> bool:
+	var tile := get_tile(coordinate)
+
+	if tile == null:
+		return false
+
+	if tile.occupant != null:
+		return false
+
+	tile.occupant = occupant
+	return true
+
+
+func vacate_tile(coordinate: Vector2i, occupant: Node) -> bool:
+	var tile := get_tile(coordinate)
+
+	if tile == null:
+		return false
+
+	if tile.occupant != occupant:
+		return false
+
+	tile.occupant = null
+	return true
+
+
+func is_tile_occupied(coordinate: Vector2i) -> bool:
+	var tile := get_tile(coordinate)
+
+	if tile == null:
+		return false
+
+	return tile.occupant != null
+
 func get_tile_global_position(coordinate: Vector2i) -> Vector2:
 	var tile := get_tile(coordinate)
 
