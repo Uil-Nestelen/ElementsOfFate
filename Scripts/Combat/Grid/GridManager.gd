@@ -41,3 +41,11 @@ func generate_grid() -> void:
 
 func get_tile(coordinate: Vector2i) -> GridTile:
 	return tiles.get(coordinate)
+
+func get_tile_position(coordinate: Vector2i) -> Vector2:
+	var tile := get_tile(coordinate)
+
+	if tile == null:
+		return Vector2.ZERO
+
+	return tile.position + Vector2.ONE * (TILE_SIZE * 0.5)
