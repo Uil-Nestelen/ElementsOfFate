@@ -33,7 +33,7 @@ func initialize_battle() -> void:
 	player = Player.new()
 	add_child(player)
 
-	player.position = grid_manager.get_tile_position(player.grid_coordinate)
+	player.position = grid_manager.get_tile_global_position(player.grid_coordinate)
 
 	enemies = Node.new()
 	enemies.name = "Enemies"
@@ -42,7 +42,7 @@ func initialize_battle() -> void:
 	var enemy := Enemy.new()
 	enemies.add_child(enemy)
 
-	enemy.position = grid_manager.get_tile_position(enemy.grid_coordinate)
+	enemy.position = grid_manager.get_tile_global_position(enemy.grid_coordinate)
 
 func start_battle() -> void:
 	if current_state != BattleState.NOT_STARTED:
