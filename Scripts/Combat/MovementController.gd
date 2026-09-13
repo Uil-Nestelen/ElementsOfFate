@@ -62,8 +62,15 @@ func execute_movement(
 		target_coordinate
 	)
 
-	for coordinate in path:
-		player.move_to(coordinate)
+	var steps_to_take: int = min(path.size(), player.movement_points)
+
+	for index in range(steps_to_take):
+		var coordinate := path[index]
+
+		if player.move_to(coordinate):
+			player.spend_movement_points(1)
+		else:
+			break
 
 func clear_path_preview() -> void:
 	for coordinate in grid_manager.tiles:
