@@ -86,6 +86,21 @@ func get_tile_global_position(coordinate: Vector2i) -> Vector2:
 		tile.position + Vector2.ONE * (TILE_SIZE * 0.5)
 	)
 
+func get_tile_at_global_position(global_position: Vector2) -> GridTile:
+	var local_position := to_local(global_position)
+
+	for coordinate in tiles:
+		var tile: GridTile = tiles[coordinate]
+		var tile_rect := Rect2(
+			tile.position,
+			Vector2.ONE * TILE_SIZE
+		)
+
+		if tile_rect.has_point(local_position):
+			return tile
+
+	return null
+
 func move_occupant(occupant: Node, from_coordinate: Vector2i, to_coordinate: Vector2i) -> bool:
 	var from_tile := get_tile(from_coordinate)
 	var to_tile := get_tile(to_coordinate)
