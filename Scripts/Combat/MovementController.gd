@@ -1,6 +1,8 @@
 class_name MovementController
 extends Node
 
+var grid_manager: GridManager
+
 
 func calculate_path(
 	start_coordinate: Vector2i,
@@ -26,3 +28,27 @@ func calculate_path(
 		path.append(current)
 
 	return path
+
+
+func update_path_preview(
+	start_coordinate: Vector2i,
+	target_coordinate: Vector2i
+) -> void:
+	clear_path_preview()
+
+	var path := calculate_path(
+		start_coordinate,
+		target_coordinate
+	)
+
+	for coordinate in path:
+		var tile := grid_manager.get_tile(coordinate)
+
+		if tile != null:
+			tile.set_path_highlighted(true)
+
+
+func clear_path_preview() -> void:
+	for coordinate in grid_manager.tiles:
+		var tile: GridTile = grid_manager.tiles[coordinate]
+		tile.set_path_highlighted(false)

@@ -32,6 +32,8 @@ func initialize_battle() -> void:
 	movement_controller = MovementController.new()
 	add_child(movement_controller)
 
+	movement_controller.grid_manager = grid_manager
+
 	grid_manager.generate_grid()
 
 	player = Player.new()
