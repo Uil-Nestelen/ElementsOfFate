@@ -25,8 +25,9 @@ func _process(_delta: float) -> void:
 
 	if tile != null:
 		battle_manager.movement_controller.update_path_preview(
-			battle_manager.player.grid_coordinate,
-			tile.coordinate
+		battle_manager.player.grid_coordinate,
+		tile.coordinate,
+		battle_manager.player.movement_points
 		)
 	else:
 		battle_manager.movement_controller.clear_path_preview()

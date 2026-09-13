@@ -4,8 +4,13 @@ extends Node2D
 var coordinate: Vector2i
 var occupant: Node = null
 var tile_size: float = 140.0
-var path_highlighted: bool = false
+enum HighlightState {
+	NONE,
+	REACHABLE,
+	UNREACHABLE
+}
 
+var highlight_state: HighlightState = HighlightState.NONE
 
 func setup(new_coordinate: Vector2i, new_tile_size: float) -> void:
 	coordinate = new_coordinate
@@ -19,12 +24,20 @@ func _draw() -> void:
 	draw_rect(rect, Color("1b2330"), true)
 	draw_rect(rect, Color("465467"), false, 2.0)
 
-	if path_highlighted:
-		draw_rect(
-			rect,
-			Color("4caf50", 0.45),
-			true
-		)
+	match highlight_state:
+		HighlightState.REACHABLE:
+			draw_rect(
+				rect,
+				Color("4caf50", 0.45),
+				true
+			)
+
+		HighlightState.UNREACHABLE:
+			draw_rect(
+				rect,
+				Color("f44336", 0.45),
+				true
+			)
 
 	draw_line(
 		Vector2(1.0, tile_size - 1.0),
@@ -33,6 +46,6 @@ func _draw() -> void:
 		1.0
 	)
 
-func set_path_highlighted(highlighted: bool) -> void:
-	path_highlighted = highlighted
+func set_highlight_state(new_state: HighlightState) -> void:
+	highlight_state = new_state
 	queue_redraw()
