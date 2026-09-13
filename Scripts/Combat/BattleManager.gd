@@ -40,6 +40,7 @@ func initialize_battle() -> void:
 	add_child(player)
 
 	player.grid_manager = grid_manager
+	movement_controller.player = player
 
 	player.position = grid_manager.get_tile_global_position(player.grid_coordinate)
 	grid_manager.occupy_tile(player.grid_coordinate, player)
