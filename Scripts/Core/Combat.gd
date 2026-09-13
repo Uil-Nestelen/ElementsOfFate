@@ -13,23 +13,6 @@ func _on_map_button_pressed() -> void:
 	GameManager.return_to_map()
 
 func _process(_delta: float) -> void:
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		var mouse_position := get_global_mouse_position()
-
-		var tile := battle_manager.grid_manager.get_tile_at_global_position(
-			mouse_position
-		)
-
-		if tile != null:
-			battle_manager.movement_controller.execute_movement(
-				battle_manager.player.grid_coordinate,
-				tile.coordinate
-			)
-
-			battle_manager.movement_controller.clear_path_preview()
-
-		return
-
 	if get_viewport().gui_get_hovered_control() != null:
 		battle_manager.movement_controller.clear_path_preview()
 		return
@@ -48,3 +31,20 @@ func _process(_delta: float) -> void:
 		)
 	else:
 		battle_manager.movement_controller.clear_path_preview()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			var mouse_position := get_global_mouse_position()
+
+			var tile := battle_manager.grid_manager.get_tile_at_global_position(
+				mouse_position
+			)
+
+			if tile != null:
+				battle_manager.movement_controller.execute_movement(
+					battle_manager.player.grid_coordinate,
+					tile.coordinate
+				)
+
+				battle_manager.movement_controller.clear_path_preview()

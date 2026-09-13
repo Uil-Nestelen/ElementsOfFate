@@ -33,12 +33,6 @@ func generate_grid() -> void:
 			add_child(tile)
 			tiles[coordinate] = tile
 
-	print("Grid generated: ", tiles.size(), " tiles")
-
-	var test_tile := get_tile(Vector2i(2, 1))
-	print("Lookup test: ", test_tile.coordinate)
-
-
 func get_tile(coordinate: Vector2i) -> GridTile:
 	return tiles.get(coordinate)
 
