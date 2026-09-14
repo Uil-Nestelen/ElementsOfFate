@@ -24,3 +24,10 @@ text = "Return to Map"
 [node name="BattleManager" type="Node" parent="." unique_id=47053608]
 script = ExtResource("2_mu3yw")
 metadata/_custom_type_script = "uid://dbeurwktyye13"
+
+[node name="EndTurnButton" type="Button" parent="." unique_id=535957440]
+offset_left = 719.0
+offset_top = 141.0
+offset_right = 797.0
+offset_bottom = 172.0
+text = "End Turn"

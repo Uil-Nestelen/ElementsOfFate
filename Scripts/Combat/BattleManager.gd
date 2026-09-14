@@ -26,6 +26,8 @@ func initialize_battle() -> void:
 	turn_manager = TurnManager.new()
 	add_child(turn_manager)
 
+	turn_manager.player_turn_started.connect(_on_player_turn_started)
+
 	grid_manager = GridManager.new()
 	add_child(grid_manager)
 
@@ -81,3 +83,6 @@ func end_battle() -> void:
 
 func _set_state(new_state: BattleState) -> void:
 	current_state = new_state
+
+func _on_player_turn_started() -> void:
+	player.reset_movement_points()
