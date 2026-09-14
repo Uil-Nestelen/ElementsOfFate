@@ -8,6 +8,7 @@ enum TurnState {
 }
 
 var current_turn: TurnState = TurnState.PLAYER_TURN
+
 signal player_turn_started
 signal enemy_turn_started
 
