@@ -7,3 +7,6 @@ func _ready() -> void:
 
 func _draw() -> void:
 	draw_circle(Vector2.ZERO, 45.0, Color("d94c4c"))
+
+func take_turn() -> void:
+	pass

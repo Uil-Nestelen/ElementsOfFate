@@ -16,7 +16,6 @@ func _on_map_button_pressed() -> void:
 
 func _on_end_turn_button_pressed() -> void:
 	battle_manager.turn_manager.end_player_turn()
-	battle_manager.turn_manager.end_enemy_turn()
 
 func _process(_delta: float) -> void:
 	if get_viewport().gui_get_hovered_control() != null:

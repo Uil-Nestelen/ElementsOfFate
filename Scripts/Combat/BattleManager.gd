@@ -19,6 +19,7 @@ var movement_controller: MovementController
 var grid: Node
 var player: Node
 var enemies: Node
+var enemy: Enemy
 
 func initialize_battle() -> void:
 	_set_state(BattleState.NOT_STARTED)
@@ -27,6 +28,7 @@ func initialize_battle() -> void:
 	add_child(turn_manager)
 
 	turn_manager.player_turn_started.connect(_on_player_turn_started)
+	turn_manager.enemy_turn_started.connect(_on_enemy_turn_started)
 
 	grid_manager = GridManager.new()
 	add_child(grid_manager)
@@ -51,7 +53,7 @@ func initialize_battle() -> void:
 	enemies.name = "Enemies"
 	add_child(enemies)
 
-	var enemy := Enemy.new()
+	enemy = Enemy.new()
 	enemies.add_child(enemy)
 
 	enemy.grid_manager = grid_manager
@@ -86,3 +88,8 @@ func _set_state(new_state: BattleState) -> void:
 
 func _on_player_turn_started() -> void:
 	player.reset_movement_points()
+
+func _on_enemy_turn_started() -> void:
+	enemy.reset_movement_points()
+	enemy.take_turn()
+	turn_manager.end_enemy_turn()
