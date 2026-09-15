@@ -53,22 +53,16 @@ func update_path_preview(
 		else:
 			tile.set_highlight_state(GridTile.HighlightState.UNREACHABLE)
 
-func execute_movement(
-	start_coordinate: Vector2i,
-	target_coordinate: Vector2i
-) -> void:
-	var path := calculate_path(
-		start_coordinate,
-		target_coordinate
-	)
+func execute_movement(combatant: Combatant,target_coordinate: Vector2i) -> void:
+	var path := calculate_path(combatant.grid_coordinate,target_coordinate)
 
-	var steps_to_take: int = min(path.size(), player.movement_points)
+	var steps_to_take: int = min(path.size(), combatant.movement_points)
 
 	for index in range(steps_to_take):
 		var coordinate := path[index]
 
-		if player.move_to(coordinate):
-			player.spend_movement_points(1)
+		if combatant.move_to(coordinate):
+			combatant.spend_movement_points(1)
 		else:
 			break
 

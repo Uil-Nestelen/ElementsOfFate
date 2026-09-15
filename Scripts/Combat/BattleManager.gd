@@ -57,6 +57,8 @@ func initialize_battle() -> void:
 	enemies.add_child(enemy)
 
 	enemy.grid_manager = grid_manager
+	enemy.movement_controller = movement_controller
+	enemy.player = player
 
 	enemy.position = grid_manager.get_tile_global_position(enemy.grid_coordinate)
 	grid_manager.occupy_tile(enemy.grid_coordinate, enemy)

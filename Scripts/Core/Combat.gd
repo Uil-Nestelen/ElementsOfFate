@@ -50,7 +50,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 			if tile != null:
 				battle_manager.movement_controller.execute_movement(
-					battle_manager.player.grid_coordinate,
+					battle_manager.player,
 					tile.coordinate
 				)
 
