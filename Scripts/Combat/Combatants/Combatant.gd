@@ -9,6 +9,8 @@ var health: int = 100
 
 var max_movement_points: int = 3
 var movement_points: int = 3
+var max_action_points: int = 2
+var action_points: int = 2
 
 
 func set_grid_coordinate(new_coordinate: Vector2i) -> void:
@@ -48,3 +50,19 @@ func move_to(new_coordinate: Vector2i) -> bool:
 	position = grid_manager.get_tile_global_position(new_coordinate)
 
 	return true
+
+func reset_action_points() -> void:
+	action_points = max_action_points
+
+func spend_action_points(amount: int) -> bool:
+	if amount < 0:
+		return false
+
+	if action_points < amount:
+		return false
+
+	action_points -= amount
+	return true
+
+func has_action_points(amount: int) -> bool:
+	return action_points >= amount
