@@ -91,8 +91,10 @@ func _set_state(new_state: BattleState) -> void:
 
 func _on_player_turn_started() -> void:
 	player.reset_movement_points()
+	player.reset_action_points()
 
 func _on_enemy_turn_started() -> void:
 	enemy.reset_movement_points()
+	player.reset_action_points()
 	enemy.take_turn()
 	turn_manager.end_enemy_turn()
