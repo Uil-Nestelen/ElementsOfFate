@@ -3,6 +3,7 @@ extends Node
 
 var grid_manager: GridManager
 var player: Player
+var turn_manager: TurnManager
 
 func calculate_path(
 	start_coordinate: Vector2i,
@@ -54,6 +55,9 @@ func update_path_preview(
 			tile.set_highlight_state(GridTile.HighlightState.UNREACHABLE)
 
 func execute_movement(combatant: Combatant,target_coordinate: Vector2i) -> void:
+	if not can_move(combatant):
+		return
+
 	var path := calculate_path(combatant.grid_coordinate,target_coordinate)
 
 	var steps_to_take: int = min(path.size(), combatant.movement_points)
@@ -72,3 +76,15 @@ func clear_path_preview() -> void:
 		tile.set_highlight_state(
 			GridTile.HighlightState.NONE
 		)
+
+func can_move(combatant: Combatant) -> bool:
+	if turn_manager.current_turn == TurnManager.TurnState.BATTLE_END:
+		return false
+
+	if combatant is Player:
+		return turn_manager.current_turn == TurnManager.TurnState.PLAYER_TURN
+
+	if combatant is Enemy:
+		return turn_manager.current_turn == TurnManager.TurnState.ENEMY_TURN
+
+	return false
