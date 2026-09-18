@@ -34,6 +34,16 @@ static func generate_floor(floor_number: int, map_seed: int) -> EncounterMap:
 		)
 	return map
 
+static func connect_nodes(
+	source: EncounterNode,
+	target: EncounterNode
+) -> void:
+	if target in source.outgoing_connections:
+		return
+
+	source.outgoing_connections.append(target)
+	target.incoming_connections.append(source)
+
 static func connect_levels(
 	current_level_nodes: Array[EncounterNode],
 	next_level_nodes: Array[EncounterNode],
@@ -43,16 +53,14 @@ static func connect_levels(
 		var source_index := rng.randi_range(0, current_level_nodes.size() - 1)
 		var source_node := current_level_nodes[source_index]
 
-		source_node.outgoing_connections.append(next_node)
-		next_node.incoming_connections.append(source_node)
+		connect_nodes(source_node, next_node)
 
 	for current_node in current_level_nodes:
 		if current_node.outgoing_connections.is_empty():
 			var target_index := rng.randi_range(0, next_level_nodes.size() - 1)
 			var target_node := next_level_nodes[target_index]
 
-			current_node.outgoing_connections.append(target_node)
-			target_node.incoming_connections.append(current_node)
+			connect_nodes(current_node, target_node)
 
 static func get_nodes_at_level(
 	nodes: Array[EncounterNode],
