@@ -32,6 +32,9 @@ static func generate_floor(floor_number: int, map_seed: int) -> EncounterMap:
 			next_level_nodes,
 			rng
 		)
+
+	if not validate_map(map):
+		push_error("Generated encounter map failed validation.")
 	return map
 
 static func connect_nodes(
@@ -173,3 +176,74 @@ static func get_nodes_at_level(
 			level_nodes.append(node)
 
 	return level_nodes
+
+static func validate_map(map: EncounterMap) -> bool:
+	for level in range(1, EncounterRules.NORMAL_LEVEL_COUNT + 1):
+		var level_nodes := get_nodes_at_level(map.nodes, level)
+
+		# Every normal level must contain 2–3 nodes.
+		if level_nodes.size() < EncounterRules.MIN_NODES_PER_LEVEL \
+		or level_nodes.size() > EncounterRules.MAX_NODES_PER_LEVEL:
+			return false
+
+		for node in level_nodes:
+			# Every node after level 1 needs an incoming connection.
+			if level > 1 and node.incoming_connections.is_empty():
+				return false
+
+			# Every normal node needs an outgoing connection.
+			if node.outgoing_connections.is_empty():
+				return false
+
+			# Outgoing connections must go only to the next level.
+			for target in node.outgoing_connections:
+				if target.level != level + 1:
+					return false
+
+			# Incoming connections must come only from the previous level.
+			if level > 1:
+				for source in node.incoming_connections:
+					if source.level != level - 1:
+						return false
+
+			# Check for duplicate outgoing connections.
+			for i in range(node.outgoing_connections.size()):
+				for j in range(i + 1, node.outgoing_connections.size()):
+					if node.outgoing_connections[i] == node.outgoing_connections[j]:
+						return false
+
+			# Check for duplicate incoming connections.
+			for i in range(node.incoming_connections.size()):
+				for j in range(i + 1, node.incoming_connections.size()):
+					if node.incoming_connections[i] == node.incoming_connections[j]:
+						return false
+
+	# There must be exactly one boss.
+	var boss_nodes := get_nodes_at_level(
+		map.nodes,
+		EncounterRules.BOSS_LEVEL
+	)
+
+	if boss_nodes.size() != 1:
+		return false
+
+	var boss := boss_nodes[0]
+
+	# Boss must actually be a boss encounter.
+	if boss.encounter_type != EncounterType.Type.BOSS:
+		return false
+
+	# Boss must have incoming connections.
+	if boss.incoming_connections.is_empty():
+		return false
+
+	# Boss must not lead anywhere else.
+	if not boss.outgoing_connections.is_empty():
+		return false
+
+	# Boss connections must come from level 10.
+	for source in boss.incoming_connections:
+		if source.level != EncounterRules.BOSS_LEVEL - 1:
+			return false
+
+	return true
