@@ -49,6 +49,49 @@ static func connect_levels(
 	next_level_nodes: Array[EncounterNode],
 	rng: RandomNumberGenerator
 ) -> void:
+	## function will first check for the 2 → 2 case. If it matches, it handles that pattern and return
+	if current_level_nodes.size() == 2 and next_level_nodes.size() == 2:
+		connect_nodes(
+			current_level_nodes[0],
+			next_level_nodes[0]
+		)
+
+		connect_nodes(
+			current_level_nodes[1],
+			next_level_nodes[1]
+		)
+
+		if rng.randi_range(0, 1) == 1:
+			if rng.randi_range(0, 1) == 0:
+				connect_nodes(
+					current_level_nodes[0],
+					next_level_nodes[1]
+				)
+			else:
+				connect_nodes(
+					current_level_nodes[1],
+					next_level_nodes[0]
+				)
+		return
+	## function will first check for the 2 → 3 case. If it matches, it handles that pattern and return
+	if current_level_nodes.size() == 2 and next_level_nodes.size() == 3:
+		connect_nodes(
+			current_level_nodes[0],
+			next_level_nodes[0]
+		)
+
+		connect_nodes(
+			current_level_nodes[0],
+			next_level_nodes[1]
+		)
+
+		connect_nodes(
+			current_level_nodes[1],
+			next_level_nodes[2]
+		)
+
+		return
+
 	for next_node in next_level_nodes:
 		var source_index := rng.randi_range(0, current_level_nodes.size() - 1)
 		var source_node := current_level_nodes[source_index]
