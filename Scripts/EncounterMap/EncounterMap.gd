@@ -1,11 +1,12 @@
-extends Node
+class_name EncounterMap
+extends RefCounted
 
+var floor_number: int
+var seed: int
+var nodes: Array[EncounterNode] = []
+var current_node: EncounterNode
+var completed: bool = false
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func _init(map_floor: int, map_seed: int) -> void:
+	floor_number = map_floor
+	seed = map_seed

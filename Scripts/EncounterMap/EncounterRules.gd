@@ -1,11 +1,14 @@
-extends Node
+class_name EncounterRules
+extends RefCounted
 
+const NORMAL_LEVEL_COUNT: int = 10
+const MIN_NODES_PER_LEVEL: int = 2
+const MAX_NODES_PER_LEVEL: int = 3
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
+const BOSS_LEVEL: int = 11
 
+static func elites_allowed(floor_number: int, level: int) -> bool:
+	if floor_number == 1 and level <= 3:
+		return false
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+	return true
