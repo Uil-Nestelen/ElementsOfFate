@@ -229,6 +229,12 @@ static func validate_map(map: EncounterMap) -> bool:
 
 	var boss := boss_nodes[0]
 
+	# Every normal node must eventually be able to reach the boss.
+	for node in map.nodes:
+		if node.level <= EncounterRules.NORMAL_LEVEL_COUNT:
+			if not can_reach_boss(node, boss):
+				return false
+
 	# Boss must actually be a boss encounter.
 	if boss.encounter_type != EncounterType.Type.BOSS:
 		return false
@@ -247,3 +253,22 @@ static func validate_map(map: EncounterMap) -> bool:
 			return false
 
 	return true
+
+static func can_reach_boss(
+	node: EncounterNode,
+	boss: EncounterNode,
+	visited: Array[EncounterNode] = []
+) -> bool:
+	if node == boss:
+		return true
+
+	if node in visited:
+		return false
+
+	visited.append(node)
+
+	for next_node in node.outgoing_connections:
+		if can_reach_boss(next_node, boss, visited):
+			return true
+
+	return false
