@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d2p05kwn43xvq" path="res://Scripts/Core/Combat.gd" id="1"]
 [ext_resource type="Script" uid="uid://dbeurwktyye13" path="res://Scripts/Combat/BattleManager.gd" id="2_mu3yw"]
-[ext_resource type="Script" uid="uid://c7yalvtkqrlqs" path="res://Scripts/EncounterMap/EncounterGeneratorTest.gd" id="2_vknn2"]
+[ext_resource type="Script" uid="uid://bxu7ffj4qgsgv" path="res://Scripts/EncounterMap/RunDataTest.gd" id="2_vknn2"]
 
 [node name="Combat" type="Node2D" unique_id=802668339]
 script = ExtResource("1")

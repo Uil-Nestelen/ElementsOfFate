@@ -23,8 +23,16 @@ const SCENE_PATHS := {
 
 var current_state: GameState = GameState.MAIN_MENU
 var run_active: bool = false
+var current_run: RunData
 
-func start_new_game() -> void:
+func start_new_game(run_seed: int = 0) -> void:
+	if run_seed == 0:
+		var rng := RandomNumberGenerator.new()
+		rng.randomize()
+		run_seed = rng.randi()
+
+	current_run = RunData.new(run_seed)
+
 	run_active = true
 	run_started.emit()
 	_set_state(GameState.RUN)
