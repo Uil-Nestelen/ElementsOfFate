@@ -12,3 +12,13 @@ static func elites_allowed(floor_number: int, level: int) -> bool:
 		return false
 
 	return true
+
+const ENCOUNTER_WEIGHTS := {
+	EncounterType.Type.COMBAT: 40,
+	EncounterType.Type.ELITE: 10,
+	EncounterType.Type.SHRINE: 10,
+	EncounterType.Type.SHOP: 10,
+	EncounterType.Type.EVENT: 10,
+	EncounterType.Type.REST: 10,
+	EncounterType.Type.MYSTERY: 10,
+}
