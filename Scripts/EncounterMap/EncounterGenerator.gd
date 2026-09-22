@@ -13,7 +13,17 @@ static func generate_floor(floor_number: int, map_seed: int) -> EncounterMap:
 		)
 
 		for i in range(node_count):
-			var node := EncounterNode.new(level, EncounterType.Type.COMBAT)
+			var encounter_type := EncounterRules.roll_encounter_type(
+				floor_number,
+				level,
+				rng
+			)
+
+			var node := EncounterNode.new(
+				level,
+				encounter_type
+			)
+
 			map.nodes.append(node)
 
 	var boss_node := EncounterNode.new(

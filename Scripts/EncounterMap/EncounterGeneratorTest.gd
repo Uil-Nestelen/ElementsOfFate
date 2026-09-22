@@ -1,12 +1,18 @@
 extends Node
 
 func _ready() -> void:
-	for map_seed in range(1, 1001):
-		var map := EncounterGenerator.generate_floor(1, map_seed)
+	var map := EncounterGenerator.generate_floor(1, 1)
 
-		print(
-			"Seed: ",
-			map_seed,
-			" | Nodes: ",
-			map.nodes.size()
+	for level in range(1, EncounterRules.BOSS_LEVEL):
+		var level_nodes := EncounterGenerator.get_nodes_at_level(
+			map.nodes,
+			level
 		)
+
+		print("Level ", level, ":")
+
+		for node in level_nodes:
+			print(
+				"  ",
+				EncounterType.Type.keys()[node.encounter_type]
+			)
