@@ -14,6 +14,8 @@ enum Type {
 	EVENT,
 	REST,
 	MYSTERY,
+	TREASURE,
+	TRAP,
 	BOSS,
 }
 

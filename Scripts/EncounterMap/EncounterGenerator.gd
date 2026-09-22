@@ -23,6 +23,13 @@ static func generate_floor(floor_number: int, map_seed: int) -> EncounterMap:
 				level,
 				encounter_type
 			)
+			
+			if encounter_type == EncounterType.Type.MYSTERY:
+				node.hidden_encounter_type = EncounterRules.roll_mystery_type(
+					floor_number,
+					level,
+					rng
+				)
 
 			map.nodes.append(node)
 
