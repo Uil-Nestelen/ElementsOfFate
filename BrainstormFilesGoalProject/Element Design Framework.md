@@ -25,7 +25,10 @@ Visual connections: [[Elemental Interactions.canvas]]
 - Golem
 	- the user creates a small autonomy golem that will walk to the nearest enemy and attack him. the golem's lifespan is 3 turns and will attack 1 per turn. the attacks of this golem depend on the element its created from. if the golem is hit by another element it can interact with it will die and initiate that interaction. only 1 golem can be created at a time (for now)
 
-*every square will for that turn will have the status effect of the casted element tied to those squares, if another element that has an interaction with that element is also applied to those squares there is an elemental interaction. if its an element that cancels with the element on that square nothing happens and it will return to normal
+*every square will for that turn will have the status effect of the casted element tied to those squares, if another element that has an interaction with that element is also applied to those squares there is an elemental interaction. if its an element that cancels with the element on that square nothing happens and it will return to normal. 
+
+*Exact sequence for extra context:
+*A square has fire residue, then I cast water on it. It will do the water spell first, then it will detect the fire residue on the square and instead of triggering a reaction it will remove the fire residue and since its a nullification there won't appear water residue the square will just reset to normal square with no residue. But if instead of water it was the dark element that was casted. its neither a nullification or enhancement its a non-interactive element so the result will be that the fire residue is removed and replaced with the dark residue on the square.
 ## Layer 1
 ### Fire
 #### Characteristics
@@ -81,7 +84,7 @@ Visual connections: [[Elemental Interactions.canvas]]
 #### Characteristics
 - This spell will only have single target spells NO spells that affect multiple squares. 
 - the purpose of this element is more to be used in combination of others and thus will be weaker when cast on his own.
-#### Shape Behaviour
+#### Shape Behavior
 - Spell shapes allowed
 	- Bolt => bolt deals 3 Psychic dmg
 	- self => the user manipulates the space around him and spells aimed at him must succeed a check to see if they hit. If they don't succeed the spell will fly through the user and land behind him.
@@ -92,7 +95,7 @@ Visual connections: [[Elemental Interactions.canvas]]
 ### Decay
 #### Characteristics
 - This element has the goal of slowly withering down by an incurable toxin (beside the Aether element)
-#### Shape Behaviour
+#### Shape Behavior
 - Spell shapes allowed
 	- golem => summons a poisonous golem that applies 1 poison on attack
 	- AOE => unleashes a poisonous cloud at the targeted location that applies 3 poison
@@ -101,34 +104,86 @@ Visual connections: [[Elemental Interactions.canvas]]
 #### Elemental interactions
 - [[#Element interactions]]
 ### Frost
-### Decay
 #### Characteristics
-- This element has the goal of slowly withering down by an incurable toxin (beside the Aether element)
-#### Shape Behaviour
+- Frost is also more AOE focused and targets the enemies MP points or AP points
+- its element specific status effect will be chill and frozen. chill builds up and then if it reaches a certain threshold it will freeze the target.
+#### Shape Behavior
 - Spell shapes allowed
-	- golem => summons a poisonous golem that applies 1 poison on attack
-	- AOE => unleashes a poisonous cloud at the targeted location that applies 3 poison
-	- Trap => creates a poison trap that triggers when an enemy walks on top of it. it then unleashes a strong poisonous gas straight on the enemy applying 6 poison
-	- Star => unleashes a poisonous cloud at the targeted location that applies 3 poison
+	- golem => summons a Frost golem that applies 1 Chill on attack
+	- AOE => unleashes a big ice meteor at the targeted location that applies 1 bludgeon dmg and 1 chill
+	- Bolt => shoots a small icy cube at the target dealing 2 bludgeon dmg and 3 chill
+	- Star => unleashes an big icycle at the targeted location that applies 1 bludgeon dmg and 1 chill
 #### Elemental interactions
 - [[#Element interactions]]
 ### Electro
 #### Characteristics
-- 
-#### Shape Behaviour
+- Electro spells will apply shock to a target until a certain threshold at which point it will add an overload stack.
+#### Shape Behavior
 - Spell shapes allowed
-	- golem => summons a poisonous golem that applies 1 poison on attack
-	- AOE => unleashes a poisonous cloud at the targeted location that applies 3 poison
-	- Trap => creates a poison trap that triggers when an enemy walks on top of it. it then unleashes a strong poisonous gas straight on the enemy applying 6 poison
-	- Star => unleashes a poisonous cloud at the targeted location that applies 3 poison
+	- Aura => the user charges the particales in the air around him making them voletile enemies that come in contact with this aura gain 2 stacks of shock when he enters the zone. They will gain 2 more if they end or start their turn in this as well.
+	- Laser => the user ready's himself and begins charging up a laser of electricity that can pierce obstacles and applies 5 shock
+	- Trap => the user places an electrical discharge trap on a tile when an enemy walks on it it will explode and deal 6 dmg and apply 10 shock
+	- Cone => The user unleashes a short range but powerful zap in front of him dealing 3 dmg and applying 5 shock
 #### Elemental interactions
 - [[#Element interactions]]
 ## Layer 3
-### Void
 ### Light
+Characteristics
+- Light specializes in **piercing and purification**.
+- Light can ignore certain forms of physical protection and can interact with obstacles differently than other elements.
+- Light spells are particularly good at attacking through the battlefield rather than around it.
+- Light can also remove certain negative effects from allies.
+- Its identity should be **precision, piercing and cleansing**, rather than simply being "holy damage."
+#### Shape Behavior
+- Spell shapes allowed
+	- **Laser** => Fires a concentrated beam of light in a straight line. The beam pierces enemies and physical obstacles. Obstacles hit by the beam are destroyed.
+	- **Star** => Creates several beams of light radiating from the target point. Each affected target takes piercing damage.
+	- **Aura** => The user surrounds himself with a field of light. Negative status effects on the user are removed at the start of the user's turn.
+	- **Cone** => Releases a cone of concentrated light. The light pierces through enemies in the cone but stops when it encounters a sufficiently strong obstacle.
+#### Elemental interactions
+- [[#Element interactions]]
 ### Dark
+Characteristics
+	- Dark specializes in **debuffs, concealment and weakening enemies**.
+	- Rather than killing enemies quickly, Dark makes them less effective over time.
+	- Dark spells should interact particularly well with enemies that are already suffering from elemental effects.
+	- Dark should feel like the opposite of Light: where Light exposes and pierces, Dark obscures and weakens.
+#### Shape Behavior
+- Spell shapes allowed
+	- **Self** => The user envelops himself in darkness, making him harder to target. Attacks against him have a chance to miss until the start of his next turn.
+	- **AOE** => Creates a zone of darkness at the targeted location. Enemies inside the zone have reduced vision/range while inside it.
+	- **Wall** => Creates a wall of darkness that applies a temporary weakening effect to enemies that walk through it
+	- **Cone** => Releases a wave of darkness that deals psychic damage and applies a temporary weakening effect to affected enemies.
+#### Elemental interactions
+- [[#Element interactions]]
 ### Aether
+Characteristics
+- Aether represents **purity, energy and restoration**.
+- It is the primary counter to Decay's incurable poison.
+- Aether should be less about raw damage and more about **removing, restoring and manipulating magical effects**.
+- Aether can cleanse certain elemental statuses and restore resources.
+#### Shape Behavior
+- Spell shapes allowed
+	- **Self** => The user surrounds himself with Aether, restoring a small amount of HP and removing one negative status effect and Decay's poison if the user is suffering from it.
+	- **Golem** => Summons an Aether construct that follows the user and periodically restores a small amount of HP to nearby allies.
+	- **Wall** => Creates a wall of condensed Aether. Projectiles passing through the wall are purified/empowered while hostile status effects attempting to cross it are removed.
+	- **Laser** => Fires a beam of concentrated Aether that deals piercing psychic damage and removes one positive buff from enemies it hits.
+#### Elemental interactions
+- [[#Element interactions]]
 ### Nether
+Characteristics
+	- Nether represents **the unnatural and destructive side of existence**.
+	- Where Void manipulates space, Nether manipulates **life, souls and magical energy**.
+	- Nether should be dangerous to both the enemy and potentially the battlefield itself.
+	- It should have strong synergy with weakened, poisoned, burning or otherwise afflicted targets.
+#### Shape Behavior
+- Spell shapes allowed
+	- **Aura** => The user surrounds himself with a draining aura. Enemies entering or ending their turn inside it lose HP, while the user gains a small amount of HP.
+	- **Wall** => Creates a temporary Nether barrier. Entities that pass through it lose 1 AP.
+	- **Laser** => Fires a concentrated beam of Nether energy that deals psychic damage. The beam becomes stronger against enemies suffering from a status effect.
+	- **Cone** => Releases a wave of Nether energy that deals psychic damage and consumes one existing elemental status on each affected enemy to deal additional damage.
+#### Elemental interactions
+- [[#Element interactions]]
 
 # Element interactions
 ## Enhancements
@@ -225,16 +280,33 @@ Visual connections: [[Elemental Interactions.canvas]]
 |           |           |        |
 | Electro   | Earth     | None   |
 | Electro   | Decay     | None   |
+## No Interactions
+All the rest not mentioned above. This means that the elemental residue of will change to latest used element, this means that it didn't trigger a enhancement or nullified the square back to normal.
 # Basic Damage Behaviour
 damage types:
-- burn
+- Burn
 - Poison
-- Indirect
-- direct
-- Psychic
-- bludgeon
-- stabbing
-- Pierce
+- Chill
+- Frozen
+- Shock
+- Overload
+- Weakening
+- blindness/visibility effects
+- MP reduction
+- AP reduction
 # Elemental status
 
-# Spell shape interaction
+# Extra context and concepts:
+- chain reactions
+	So for chain reactions you first need to understand elemental residue.
+
+- Elemental residue
+	 Elemental residue occurs when an entity casts a spell. The squares that had to interact with said squares are not still lingering with the elemental magic from the used element. This means if I cast a fire bolt only one square gets affected with fire residue. But if I instead cast a fire AOE that affects 16 squares, All 16 squares will have fire residue. Elemental residue will always disappear when the round (A round is over when both parties have taken their turn and pressed end turn. This means the player has ended their turn and all enemy or enemies have ended their turn) is over.
+	 
+	 Now what is the point of elemental residue? Elemental residue's only purpose is so that other elements can interact with it on the battle field. If some elemental residue is affecting a square and another spell comes in contact with it there are 3 things that can happen.
+	 
+	 1. Enhancement: The elemental residue will react with the new element that is has interacted with the squares it resides and an elemental interaction will occur. After the elemental interaction occurred the last element casted stays on that square.
+	Example:
+	Lets say I cast Fire AOE on an enemy the enemy will receive burn from this spell and this will affect 16 squares, all these squares are now containing elemental residue of the fire element. Now lets say I cast Decay AOE on that same enemy this spell will do its thing and inflict 3 poision. But then the Decay residue interacts with the fire residue and unleases their respective elemental reaction in this case: corrosive burn. But this won't happen on only the square of the enemy. Since the 16 squares of fire are the same selected squares of decay all 16 squares will create the corrosive burn. Now for this specific interaction nothing happens on the other squares where no enemies are present. After this interaction the latest element will remain imbued in those squares until the round is over at which point the squares elemental residue rests with exception: wall, golem, trap.
+	 2. Nullification: The elemental residue will not react with the new casted element. On the contrary the element dislike each other so much they remove the current elemental residue on the square if there is any and the casted spell won't leave any residue either. So the square become neutral and contains no residue.
+	 3. non-interactive: The elemental residue will not react with the newly casted element. But unlike nullification where the residue dissapears, this new element will just replace the old one.
