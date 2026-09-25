@@ -4,26 +4,34 @@ Visual connections: [[Elemental Interactions.canvas]]
 - Bolt
 	- fires a bolt of the certain element, look in the element for specifics
 - AOE
-	- shoots a projectile that lands in a 4x4 square that damages everyone in the zone. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise.
+	- shoots a projectile that lands in a 4x4 square that damages everyone in the zone. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise. So the spell will always affect 16 squares unless specificly stated otherwise.
 - Trap
 	- places a trap on the square selected by the user (cast range t.b.d but for now 3 squares) that explodes when someone else but the caster walks on top of it. this square will be stand by until its activated by an enemy stepping on it or by interaction of another element*.
 	  E.x: there is a trap on one square with the element of fire and there is an AOE wind spell casted if this trap is in the zone its will trigger and create a fire tornado on that square. for extra infomation about the fire tornado look at [[#Element interactions]]
 - Wall
-	- creates a wall on the battlefield that is 8x1 long and can be placed horizontal and vertical but not diagonally and lasts 5 turns. everyone that makes contact with this wall is susceptible to damage or effects produced by the wall. the squares afflicted can have interaction of another element*.
+	- creates a wall on the battlefield that is 8x1 long and can be placed horizontal and vertical but not diagonally and lasts 5 turns. everyone that makes contact with this wall is susceptible to damage or effects produced by the wall.  the wall can not be placed on top of an enemy but it can connect with other walls and if the player wants it it can overlap with an existing. In which case the parts it replaces refresh the 5 turn timer. Walls with the physical property can not be walked through and thus entities can't enter this square. But walls like the fire wall that do not have this property can be walked through. the squares afflicted can have interaction of another element*.
 - Self
 	- the user cast the element on himself, the effect varies depending on the element
 	- temporary concept: other elements can interact with the element the user is covered in. E.x: if the user covered himself in earth and one uses fire on him. the user would instead of protecting take dmg since the earth he covered himself in transformed into magma.
 	  but the opposite is also true. if the user covered himself in water and the enemy casts a fire spell on him it will get nullified.
 - Star
-	- like the AOE spell the user shoots a projectile that lands and deals damage in a zone resembling a star this being a combination of + and x on top of each other. it will be 5 long so in total it will cover 17 squares. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise.
+	- like the AOE spell the user shoots a projectile that lands and deals damage in a zone resembling a star this being a combination of + and x on top of each other. it will be 5 long so (centre included)  in total it will cover 17 squares. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise. 
 - Laser
-	- the user casts a laser in the specified element, the user must sacrifice 3 MP to be able to casts this spell. the spell will then fire and pierce all enemies in a line. like the wall this spell can only be cast horizontal or vertical not diagonally.
+	- the user casts a laser in the specified element, the user must sacrifice 3 MP to be able to casts this spell. the spell will then fire and pierce all enemies in a line. like the wall this spell can only be cast horizontal or vertical not diagonally. The Laser has the pierce tag meaning its penetrative capabilities are prioritised. this spell will go through obstacles and if they are destroyable they will be destroyed (think of physical walls or frozen corpses).
 - Cone
-	- the user casts his element in a short cone right in front of him, this is about 90 degree angle and has a reach of 4 squares. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise.
+	- the user casts his element in a short cone right in front of him, this is about 90 degree angle and has a reach of 4 squares. this means it will afflict a 4x4 area with  the user being in one of the corners. Since we don't want the user to get hit by its own spell his square is excluded and thus there remain 15 squares that get impacted by this spell. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise.
 - Aura
 	-  the user imbues himself with the elemental magic creating a magic aura around him, this has a reach of 4 squares. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise.
 - Golem
-	- the user creates a small autonomy golem that will walk to the nearest enemy and attack him. the golem's lifespan is 3 turns and will attack 1 per turn. the attacks of this golem depend on the element its created from. if the golem is hit by another element it can interact with it will die and initiate that interaction. only 1 golem can be created at a time (for now)
+	- the user creates a small autonomy golem that will walk to the nearest enemy and attack him. the golem's lifespan is 3 attacks and will attack 1 per turn. the attacks of this golem depend on the element its created from. if the golem is hit by another element it can interact with it will die and initiate that interaction. only 1 golem can be created at a time (for now)
+	- The golem will start walking towards and if possible hit its target the moment it gets summoned during this period the player or enemy ai shouldn't be allowed to do anything, no walking or casting spells.
+	- it acts at the start of the summoners turn
+	- the golem has 3 MP unless walking through difficult terrain which affects MP
+	- it can not pass through other combatants
+	- it can interact with other elements but itself has no hp. it will only die if its element interacts with an elemental interaction or an element that nullifies the element its made out of.
+	- since no entities can walk on top of each other and the golem will always be a physical entity. So no other combatant can enter this square.
+	- if 2 enemies are in the same distance from each other it will path to the one with the lowest hp if they both have the same hp it will path towards a random one an stick with it. the golem will pick its target the moment it spawns and will not change targets afterwards.
+	- it will disappear after 3 doing attacks or earlier if it has interacted with an element.
 
 *every square will for that turn will have the status effect of the casted element tied to those squares, if another element that has an interaction with that element is also applied to those squares there is an elemental interaction. if its an element that cancels with the element on that square nothing happens and it will return to normal. 
 
@@ -69,7 +77,7 @@ Visual connections: [[Elemental Interactions.canvas]]
 - [[#Element interactions]]
 ### Air
 #### Characteristics
-- the goal of water will be to more of an displacement spell or if its combined to increase the range of effects of other spells in interactions.
+- the goal of air will be to more of an displacement spell or if its combined to increase the range of effects of other spells in interactions.
 #### Shape Behaviour
 - Spell shapes allowed
 	- Bolt => bolt deals 1 bludgeon dmg
@@ -136,7 +144,7 @@ Characteristics
 - Its identity should be **precision, piercing and cleansing**, rather than simply being "holy damage."
 #### Shape Behavior
 - Spell shapes allowed
-	- **Laser** => Fires a concentrated beam of light in a straight line. The beam pierces enemies and physical obstacles. Obstacles hit by the beam are destroyed.
+	- **Laser** => Fires a concentrated beam of light in a straight line. The beam pierces enemies and physical obstacles. Obstacles hit by the beam are destroyed (this includes non-physical obstacles like the fire wall as well. (it will then create a hole in the wall removing clearing that square the laser passed through)
 	- **Star** => Creates several beams of light radiating from the target point. Each affected target takes piercing damage.
 	- **Aura** => The user surrounds himself with a field of light. Negative status effects on the user are removed at the start of the user's turn.
 	- **Cone** => Releases a cone of concentrated light. The light pierces through enemies in the cone but stops when it encounters a sufficiently strong obstacle.
@@ -282,23 +290,46 @@ Characteristics
 | Electro   | Decay     | None   |
 ## No Interactions
 All the rest not mentioned above. This means that the elemental residue of will change to latest used element, this means that it didn't trigger a enhancement or nullified the square back to normal.
-# Basic Damage Behaviour
-damage types:
+# Damage and status effects
+## Status types:
 - Burn
+	damage equal to burn stacks at end of round, then reduce stacks by 1/3.
 - Poison
+	damage equal to half the stacks (rounded down) at end of round.
 - Chill
+	Stacks up until 10 at which chill is removed and the target becomes frozen. if the target didn't get frozen at the end of the turn remove 4 chill stacks
 - Frozen
+	the entity is frozen and can't move during his turn
 - Shock
+	energizes the entity until 20 stacks at which point the entity will gain 1 overload stack. Shock gets completely removed at the end of the round.
 - Overload
+	When the round ends all overloaded unites discharge the stored energy in a 3x3 field around the entity the damage is based on the number of overload stacks.
 - Weakening
+	the entity affected by this affliction will deal 2/3 of its damage instead of the usual 3/3. This does not affect status type moves only the dmg part of spells and interactions
 - blindness/visibility effects
+	Depends on the spell itself some make everyone invisible, some show the last position of the player, some make only make enemies or player invisible.
 - MP reduction
+	reduces the default cap of 3 movement points. (note: there will be relics or shrine element powerups that can change these values)
 - AP reduction
-# Elemental status
+	reduces the default cap of 3 action points. (note: there will be relics or shrine element powerups that can change these values)
+
+## Damage types:
+- indirect
+	Is damage that is not received directly but instead at the end of the entities turn or at the end of the round.
+- Direct
+	Is damage that is received directly when the spell interacts with its target.
+- Psychic
+	Is damage that inflicts the users mind and thus can not be blocked by nullification or blocked by self spell shape variants
+- Bludgeon
+	Is a damage type that is usually when hit by a physical blunt magic projectile or contact with an obstacle with the physical property.
+- Stabbing
+	Is a damage type that is usually when hit by something that is physical but also sharp instead of blunt. like a knife or a icicles.
+- Pierce
+	Like the physical variant of psychic, it will usaully deal less damage then blugeon or stabbing projectiles but has the benefit of being able to pierce some defensive self spellshapes and being able to pierce walls and obstacles with the physical property.
 
 # Extra context and concepts:
 - chain reactions
-	So for chain reactions you first need to understand elemental residue.
+	So for chain reactions you first need to understand elemental residue. chain reactions are possible in the context of the following example. lets say the player casts a spell doesn't matter which one it will leave elemental residue on the tiles the spell interacted with. An AOE spell will affect 16 squares while a bolt only affects 1. then our player casts another spell that has an elemental reaction with the element the player casted first. the last element casted will then interact with the elemental residue of the first element. Thus creating an effect, now the last spells elemental residue remains on those squares. if the player with his last AP (action point) casts his final spell and it happens to interact with that element as well there would be another elemental interaction. So in short there can be multiple elemental interactions on the same turn the same thing counts for walls and self spell shapes. if the user is standing on a square with elemental residue and the user casts self and those 2 elements have an interaction one will take place. so you have to be careful in what squares you casts spells to help yourself if the enemy has elements that interact with them.
 
 - Elemental residue
 	 Elemental residue occurs when an entity casts a spell. The squares that had to interact with said squares are not still lingering with the elemental magic from the used element. This means if I cast a fire bolt only one square gets affected with fire residue. But if I instead cast a fire AOE that affects 16 squares, All 16 squares will have fire residue. Elemental residue will always disappear when the round (A round is over when both parties have taken their turn and pressed end turn. This means the player has ended their turn and all enemy or enemies have ended their turn) is over.
@@ -308,5 +339,28 @@ damage types:
 	 1. Enhancement: The elemental residue will react with the new element that is has interacted with the squares it resides and an elemental interaction will occur. After the elemental interaction occurred the last element casted stays on that square.
 	Example:
 	Lets say I cast Fire AOE on an enemy the enemy will receive burn from this spell and this will affect 16 squares, all these squares are now containing elemental residue of the fire element. Now lets say I cast Decay AOE on that same enemy this spell will do its thing and inflict 3 poision. But then the Decay residue interacts with the fire residue and unleases their respective elemental reaction in this case: corrosive burn. But this won't happen on only the square of the enemy. Since the 16 squares of fire are the same selected squares of decay all 16 squares will create the corrosive burn. Now for this specific interaction nothing happens on the other squares where no enemies are present. After this interaction the latest element will remain imbued in those squares until the round is over at which point the squares elemental residue rests with exception: wall, golem, trap.
+	one small note to add to this is that for the 3 spell shapes mentioned there is still to be thought out how they would interact with all of this since it would be kind of pointless to summon a golem in a fire residue zone at which point it would instantly despawn just to trigger its elemental interaction which is kind of lame but also makes it more tactical.
+	
 	 2. Nullification: The elemental residue will not react with the new casted element. On the contrary the element dislike each other so much they remove the current elemental residue on the square if there is any and the casted spell won't leave any residue either. So the square become neutral and contains no residue.
-	 3. non-interactive: The elemental residue will not react with the newly casted element. But unlike nullification where the residue dissapears, this new element will just replace the old one.
+	Example:
+	lets say I cast fire AOE on an enemy the enemy will receive burn from this spell and this will affect 16 squares, all these squares are now containing elemental residue of the fire element. Now lets say I cast Water AOE on the same enemy on the same tiles. the enemy would just take the damage from the spell but not elemental residue gets left behind and the elemental residue that was active in this case fire would get swept away resulting in all 16 squares returning to normal squares with no elemental residue.
+	
+	 3. non-interactive: The elemental residue will not react with the newly casted element. But unlike nullification where the residue disappears, this new element will just replace the old one.
+	Example:
+	lets say I cast fire AOE on an enemy the enemy will receive burn from this spell and this will affect 16 squares, all these squares are now containing elemental residue of the fire element. Now lets say I cast dark AOE on the same enemy, the enemy will receive dmg or status effect from the dark spell and all the elemental fire residue will get replaced by the dark one. so from 16 fire residue -> 16 dark residue.
+
+# Combat Resources
+## AP ( Action points)
+	Ap is a resource the player an his opponents have to decide how many actions it can do before its turn is over. As default the player and his opponents have 3 AP meaning the player an its opponents can cast 3 spells (unless its afflicted by something that reduces this amoumt). At the end of each round the player and the enemies AP gets refreshed back to its maximum value. AP can and never will go below 0. there are moves/effects that can increase the amount of AP points gained for a turn. these effects must always specify how much they increase it by and if its only tempeorary (for one round or multiple rounds and if its for 1 combat or multiple) or if its permanant (it will presists for all combats and all its turn in that combat during its run. Items or buffs can not be transferd to other runs!!!!)
+
+## MP (Movement points)
+	Mp is a resource the player an his opponents have to decide how many movement it can do before its turn is over. As default the player and his opponents have 3 MP meaning the player an its opponents can move 3 squares (unless its afflicted by something that reduces this amoumt). At the end of each round the player and the enemies MP gets refreshed back to its maximum value. MP can and never will go below 0. there are moves/effects that can increase/decrease the amount of MP points gained for a turn. these effects must always specify how much they increase it by and if its only tempeorary (for one round or multiple rounds and if its for 1 combat or multiple) or if its permanant (it will presists for all combats and all its turn in that combat during its run. Items or buffs can not be transferd to other runs!!!!)
+
+# Elemental layers and shrines explained
+ 
+- ## how to acquire elements
+	The first element a player starts with is obtained when selecting his starting wizard. this will be one of the four layer 1 elements. So he can choose between: fire, air, water and earth.
+	
+	Then he still has 2 element less spells shapes in his arsenal. These spell shapes can get their element at shrines, when arriving at a shrine you will have the option between 3 choices. if an "upgrade" can happen it will always show on the most left of the 3 options. Now this upgrade is not really an upgrade but rather a way for you to get an element of the second level. The other two choices are random so you will get 2 random layer 1 elements to choose from. So lets say I started with the pyromancer class and I arrive at my first shrine. The left option will be void since its the second layer of fire and the 2 other options will be either: earth, water or water, air or air, earth. lets say I went for void and continue playing.
+	
+	I then arrive at my 2nd shrine I again in the most left option get the possibility to "upgrade" so void can then transform into dark. or I can pick one of the other elements. Now its gets interesting because last time I exchanged my fire for void so it now becomes available (you can't get multiple spells of the same element. )
