@@ -36,7 +36,7 @@ Visual connections: [[Elemental Interactions.canvas]]
 *every square will for that turn will have the status effect of the casted element tied to those squares, if another element that has an interaction with that element is also applied to those squares there is an elemental interaction. if its an element that cancels with the element on that square nothing happens and it will return to normal. 
 
 *Exact sequence for extra context:
-*A square has fire residue, then I cast water on it. It will do the water spell first, then it will detect the fire residue on the square and instead of triggering a reaction it will remove the fire residue and since its a nullification there won't appear water residue the square will just reset to normal square with no residue. But if instead of water it was the dark element that was casted. its neither a nullification or enhancement its a non-interactive element so the result will be that the fire residue is removed and replaced with the dark residue on the square.
+*A square has fire residue, then I cast water on it. It will do the water spell first, then it will detect the fire residue on the square and instead of triggering a reaction it will remove the fire residue and since its a nullification there won't appear water residue the square will just reset to normal square with no residue. But if instead of water it was the dark element that was casted. its neither a nullification or enhancement its a non-interactive element so the result will be that the fire residue is removed and replaced with the dark residue on the square.*
 ## Layer 1
 ### Fire
 #### Characteristics
@@ -92,12 +92,12 @@ Visual connections: [[Elemental Interactions.canvas]]
 #### Characteristics
 - This spell will only have single target spells NO spells that affect multiple squares. 
 - the purpose of this element is more to be used in combination of others and thus will be weaker when cast on his own.
-#### Shape Behavior
+#### Shape Behaviour
 - Spell shapes allowed
 	- Bolt => bolt deals 3 Psychic dmg
 	- self => the user manipulates the space around him and spells aimed at him must succeed a check to see if they hit. If they don't succeed the spell will fly through the user and land behind him.
 	- Trap => creates a void trap that will not deal dmg but instead eat the next spell flying over it. or if an enemy enters a 3x3 zone around the trap it will instead suck the entity into it and reduce its MP by 2
-	- TBD => 
+	- Golem => 
 #### Elemental interactions
 - [[#Element interactions]]
 ### Decay
@@ -351,16 +351,21 @@ All the rest not mentioned above. This means that the elemental residue of will 
 
 # Combat Resources
 ## AP ( Action points)
-	Ap is a resource the player an his opponents have to decide how many actions it can do before its turn is over. As default the player and his opponents have 3 AP meaning the player an its opponents can cast 3 spells (unless its afflicted by something that reduces this amoumt). At the end of each round the player and the enemies AP gets refreshed back to its maximum value. AP can and never will go below 0. there are moves/effects that can increase the amount of AP points gained for a turn. these effects must always specify how much they increase it by and if its only tempeorary (for one round or multiple rounds and if its for 1 combat or multiple) or if its permanant (it will presists for all combats and all its turn in that combat during its run. Items or buffs can not be transferd to other runs!!!!)
+- Ap is a resource the player an his opponents have to decide how many actions it can do before its turn is over. As default the player and his opponents have 3 AP meaning the player an its opponents can cast 3 spells (unless its afflicted by something that reduces this amount). At the end of each round the player and the enemies AP gets refreshed back to its maximum value. AP can and never will go below 0. there are moves/effects that can increase the amount of AP points gained for a turn. these effects must always specify how much they increase it by and if its only temporary (for one round or multiple rounds and if its for 1 combat or multiple) or if its permanent (it will persists for all combats and all its turn in that combat during its run. Items or buffs can not be transfer to other runs!!!!)
 
 ## MP (Movement points)
-	Mp is a resource the player an his opponents have to decide how many movement it can do before its turn is over. As default the player and his opponents have 3 MP meaning the player an its opponents can move 3 squares (unless its afflicted by something that reduces this amoumt). At the end of each round the player and the enemies MP gets refreshed back to its maximum value. MP can and never will go below 0. there are moves/effects that can increase/decrease the amount of MP points gained for a turn. these effects must always specify how much they increase it by and if its only tempeorary (for one round or multiple rounds and if its for 1 combat or multiple) or if its permanant (it will presists for all combats and all its turn in that combat during its run. Items or buffs can not be transferd to other runs!!!!)
+- MP is a resource the player an his opponents have to decide how many movement it can do before its turn is over. As default the player and his opponents have 3 MP meaning the player an its opponents can move 3 squares (unless its afflicted by something that reduces this amount). At the end of each round the player and the enemies MP gets refreshed back to its maximum value. MP can and never will go below 0. there are moves/effects that can increase/decrease the amount of MP points gained for a turn. these effects must always specify how much they increase it by and if its only temporary (for one round or multiple rounds and if its for 1 combat or multiple) or if its permanent (it will persists for all combats and all its turn in that combat during its run. Items or buffs can not be transfer to other runs!!!!)
 
 # Elemental layers and shrines explained
  
-- ## how to acquire elements
+- ## how to acquire the first elements
 	The first element a player starts with is obtained when selecting his starting wizard. this will be one of the four layer 1 elements. So he can choose between: fire, air, water and earth.
 	
-	Then he still has 2 element less spells shapes in his arsenal. These spell shapes can get their element at shrines, when arriving at a shrine you will have the option between 3 choices. if an "upgrade" can happen it will always show on the most left of the 3 options. Now this upgrade is not really an upgrade but rather a way for you to get an element of the second level. The other two choices are random so you will get 2 random layer 1 elements to choose from. So lets say I started with the pyromancer class and I arrive at my first shrine. The left option will be void since its the second layer of fire and the 2 other options will be either: earth, water or water, air or air, earth. lets say I went for void and continue playing.
+- ## how to acquire more elements
+	Elements are acquired by visiting shrines and selecting one of three options. the most left option will always try to provide an upgrade to the player. This upgrade can either be changing the element to the one in the next layer or by selecting a perk. this means if you start with the fire element it will go as followed: fire -> void - > dark. its important to note that if you select a perk for an element you won't be able to change it anymore. So if I go from fire to void and then select a perk at the void level you won't be able to upgrade it to dark anymore. 
 	
-	I then arrive at my 2nd shrine I again in the most left option get the possibility to "upgrade" so void can then transform into dark. or I can pick one of the other elements. Now its gets interesting because last time I exchanged my fire for void so it now becomes available (you can't get multiple spells of the same element. )
+	What is possible is for the user to get all 3 elements from the same side so: fire, void, dark. To achieve this he just has to pick fire and go to shrines to change his element to the next level. Then continue to do so if the user arrived at dark he doesn't have to pick a perk upgrade to lock it since there are no other elements to go to. The same will count for void since the user already has dark void will be locked from changing since no duplicates elements are allowed. Now if the user fist goes to void and then wants to upgrade his fire element he will only get the option to select a perk from fire wile void will have both options. If he then got a perk for void and a perk for fire he won't be able to get the fire element since he can't get fire as an element again only extra perks for the fire element. the shrine will do its best to always try and provide at least 1 upgrade. the other 2 are randomised and can give anything. unless the user has all 3 spell shapes infused with elements. At which point the shrine can only provide those 3 elements.
+	
+- ## Perks explained
+	Now what are perks, they are together the only way to upgrade elements together with some relics but not all of the relics. Now perks don't inherently upgrade the damage of an element. Instead it will modify a certain portion of the element For example frozen right now deals no damage but maybe when you go frost and select a hyperthermia perk frozen now not only disables the enemy but it now also starts doing damage. So to summarise Perks are not base damage increase upgrades but rather indirect upgrades or they can change the base characteristics of an element.
+	
