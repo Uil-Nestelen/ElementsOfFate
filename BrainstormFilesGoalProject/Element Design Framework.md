@@ -97,7 +97,7 @@ Visual connections: [[Elemental Interactions.canvas]]
 	- Bolt => bolt deals 3 Psychic dmg
 	- self => the user manipulates the space around him and spells aimed at him must succeed a check to see if they hit. If they don't succeed the spell will fly through the user and land behind him.
 	- Trap => creates a void trap that will not deal dmg but instead eat the next spell flying over it. or if an enemy enters a 3x3 zone around the trap it will instead suck the entity into it and reduce its MP by 2
-	- Golem => 
+	- Golem => Summons a void golem that deals 2 bludgeoning dmg on attack
 #### Elemental interactions
 - [[#Element interactions]]
 ### Decay
@@ -368,4 +368,27 @@ All the rest not mentioned above. This means that the elemental residue of will 
 	
 - ## Perks explained
 	Now what are perks, they are together the only way to upgrade elements together with some relics but not all of the relics. Now perks don't inherently upgrade the damage of an element. Instead it will modify a certain portion of the element For example frozen right now deals no damage but maybe when you go frost and select a hyperthermia perk frozen now not only disables the enemy but it now also starts doing damage. So to summarise Perks are not base damage increase upgrades but rather indirect upgrades or they can change the base characteristics of an element.
+
+# Encounter Types Explained
+- ## Combat
+	Combat is plain and simple the player has to battle an enemy. If he succeeds he wins some money he can spend in the shop to buy relics. If the player's health reaches 0, he loses and has to start a new run.
+- ## Elite
+	Elite is like combat but on steroids but the reward is also greater. The difficulty I am aiming for is either x1,5 or x2 times more dificult then normal combat.
+- ## Shrine
+	The shrine is a structure where the player is able to increase his spells power or swap them out for new elements (note: the player can't swap his spell shapes during the run only at the start of his run can he prepare them and swap in and out like he pleases.)
+- ## Shop
+	Is an encounter where the player is able to spend the money he earned from combats to buy relics or health (that's it for now)
+- ## Event
 	
+- ## Rest
+	This is a place where the player is able to sit down and let his health regenerate for a bit (25% of max HP)
+- ## Mystery
+	This is an encounter where you won't be able to see what you will get before going into it. The outcome is coded to be slightly more positive then negative though (51vs49). The mystery encounter has the following options: Shrine, shop, rest, treasure, combat, elite, trap. Thus when picking Mystery you will receive one of those at random.
+- ## Treasure
+	Treasure is the place where the player is able to get Relics and build up his collection of this.
+- ## Trap
+	The trap is only encountered through the mystery encounter and will damage the player for 7.5% of his max HP
+- ## Boss
+	The boss is the last encounter a player will have to face at the end of each floor. This encounter will be x3 or x4 as difficult as the normal combat encounter. The element of the boss will also depend on the class the player picked to start.
+	
+	The boss his difficulty will alter depending on the selected game difficulty. Easy the boss will have elemental spells that get countered by the player. Normal difficulty the boss will receive random spells but will be equipped with relics or boosters. At hard the boss will get spells that counter the player and have relics.
