@@ -48,8 +48,6 @@ Visual connections: [[Elemental Interactions.canvas]]
 	- AOE => applies 1 burn to targets in the zone
 	- trap => applying 6 burn
 	- wall => creates a wall of fire  that is 8 x 1 long can be place horizontal and vertical not diagonally. when someone makes contact with the wall the character takes 1 burn. This will give the user one burn when walking through the wall, or if the entity walks in the wall and end his turn he will receive one burn that turn and one burn when he starts his turn since he has already made contact with it again.
-	- star => applies 1 burn to targets in the zone
-	- aura => applies 2 burn to all targets in the zone.
 #### Elemental interactions
 - [[#Element interactions]]
 ### Earth
@@ -415,3 +413,24 @@ extra information called battle rules:
 	- This ill need to specify more I think but I first need to see where I said there would be damage negation or reduction
 - Which parts of elemental behaviour are upgradable
 	- This will be done in shrines with the perk system that needs to be build out. The concept is already described in [[#Elemental layers and shrines explained]]. But what exactly the perks are for each element needs to be worked out still.
+
+
+Exact order of spell resolution
+1. Player selects fire AOE
+2. checks if player is able to cast it and has enough AP
+3. Player select square he wants the spell to land at.
+4. player shoots spell at location
+5. Players AP gets reduced by 1
+6. spell interacts with enemy and squares.
+	1. Enemy receives status effect (in this case 1 burn)
+	2. Check if the tiles the spell affects have elemental residue (in this case check 16 tiles), right now htere is none
+	3. spell interacts with tiles: All affected squares get elemental residue (fire)
+7. Player is able to move and cast spells again as long as he has AP left
+8. Player selects Decay AOE
+9. checks if player is able to cast it and has enough AP
+10. Player select square he wants the spell to land at.
+11. player shoots spell at location
+12. Players AP gets reduced by 1
+13. spell interacts with enemy and squares.
+	1. Enemy receives status effect (in this case 3 poision)
+	2. spell interacts with tiles: All affected squares get elemental residue (fire)
