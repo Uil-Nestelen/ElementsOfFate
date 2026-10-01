@@ -422,10 +422,11 @@ Exact order of spell resolution
 4. player shoots spell at location
 5. Players AP gets reduced by 1
 6. spell interacts with enemy and squares.
-	1. Enemy receives status effect (in this case 1 burn)
-	2. Check if the tiles the spell affects have elemental residue (in this case check 16 tiles), right now htere is none
+	1. Enemy receives status effect (in this case 1 burn) from fire AOE
+	2. Check if the tiles the spell affects have elemental residue (in this case check 16 tiles), right now there is none
 	3. spell interacts with tiles: All affected squares get elemental residue (fire)
 7. Player is able to move and cast spells again as long as he has AP left
+   
 8. Player selects Decay AOE
 9. checks if player is able to cast it and has enough AP
 10. Player select square he wants the spell to land at.
@@ -433,4 +434,95 @@ Exact order of spell resolution
 12. Players AP gets reduced by 1
 13. spell interacts with enemy and squares.
 	1. Enemy receives status effect (in this case 3 poision)
-	2. spell interacts with tiles: All affected squares get elemental residue (fire)
+	2. Check if the tiles the spell affects have elemental residue (in this case check 16 tiles), The tiles have fire residue. Thus since fire + decay = corrosive burn, all 16 squares where the fire residue reacts with the decay spell apply corrosive burn to the entity on the tiles
+	3. After elemental enhancement all 16 tiles the spell hit get elemental residue (decay
+
+14. Repeat until all AP is spent
+
+## What happens when an interaction affects another tile
+For example:
+**Fire + Air → Fire Tornado**
+
+You say it spreads the initial fire effect to a 3×3 area.
+We need to establish whether those newly affected tiles:
+receive Fire residue and this residue can trigger further elemental interactions.
+
+
+## Entities vs elemental residue
+
+For golem, trap and wall the elemental residue effect works a bit different indeed so that its not to lame an the spells that are meant for setups are blown instantly. So instead of them disappearing when summoned/walk on a tile with elemental residue nothing will happen beside the elemental residue changing element from the old element to the new one. Enemies can still the golem if they directly hit the golem with a spell, this is fair since you spend an AP resource to remove it from the battlefield. Same goes for the trap the wall is its own obstacle so only some things are able to remove it not every spell or interaction.
+
+Self and aura don't follow those rules above but rather the normal rules since its a form of skill expression and I like the idea of you getting punished by casting the spell when you are standing in elemental residue. This way the player has to be carful and plan on when to use these spells. So if the user casts spell shape self with an element while standing on some elemental residue it can trigger an elemental enhancement (so be carful :D)
+
+## Movement/displacement needs a formal ruleset
+### What happens when pushed into:
+
+- another entity?
+	- Takes bludgeoning damage from being pushed into another hard object (not a lot of dmg though, not sure yet how much)
+- a wall?
+	- For walls with the physical property: Takes bludgeoning damage from being pushed into a hard object.
+	- For other walls: The user phases in the wall or through and takes the effect or status effect of the wall as if he walked into it. so if its a fire wall he will receive the burn effect.
+- the edge of the battlefield?
+	- Lets say the battlefield is surrounded by all walls with the physical property.
+- an impassable tile?
+	- Is an object with the physical property so see wall with physical property.
+- multiple obstacles?
+	- I don't know any case where an entity would be pushed against multiple walls or objects at the same time.
+- a newly created wall?
+	- same as an old wall see walls.
+
+Does displacement consume MP?
+
+no, Since the movement is involuntary and the movement is done through magic and not the energy. It would be epic that the entity uses elemental interactions on itself to move further than he would normally be capable off.
+
+
+## Damage types need one more layer of definition
+The main 2 types that might need an extra explanation is psychic and piercing damage.
+
+Psychic is a form of damage made in the game so that some defence buffs are not completely invurenable. whilst piercing damage is in the game for people that absolutely want to hit someone and scarifies damage for it. The goal for piercing damage is to have a source that is able to penetrate terrain. So earth self wouldn't be resistant against both of these but lets say that the entity would be moved and smacked against a wall or object it wouldn't receive damage.
+
+## Status timing
+Just to clear up the chill and frozen mechanic. chill can be applied to a entity by a variety of sources. But the most important part is when an entity reaches 10 stacks of chill it will immediately become frozen. It doesn't matter if it happens during his turn or during the enemies turn or at the end of the turn. So every time chill gets applied to entity there needs to be checked if how many stacks it already have and if you add x amount more if it reaches 10 and freezes the target.
+
+## The shrine/perk system needs to be designed before implementation
+Still need to be thought out and implemented
+
+# One important inconsistency I noticed
+
+There is one thing I definitely want us to clean up before using this as our "law".
+
+You currently have:
+
+> "An elemental reaction triggers when there is already elemental residue on the tile and a spell that affects that tile or tiles which have elemental residue and the 2 elements that are interacting are in the enhancement table."
+
+That's correct for normal enhancement.
+
+But your three-state system is actually broader:
+
+```
+Existing residue
+       +
+New element
+       ↓
+ ┌───────────────┐
+ │ Enhancement   │
+ │ Nullification │
+ │ No interaction│
+ └───────────────┘
+```
+
+So technically **an elemental interaction** should probably be distinguished from an **elemental enhancement**.
+
+Otherwise we're going to end up with terminology problems in code.
+
+I'd like us to establish something like:
+
+> **Elemental Resolution** = checking the relationship between two elements.
+
+Then the result is:
+
+- Enhancement
+- Nullification
+- Replacement
+
+That's much cleaner for the eventual implementation.
