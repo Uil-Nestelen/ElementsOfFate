@@ -526,3 +526,128 @@ Then the result is:
 - Replacement
 
 That's much cleaner for the eventual implementation.
+
+## what is a round:
+A round will usually have the following structure:
+- Player turn
+	- Start playre turn effects
+	- player actions
+	- end player turn effects
+- enemy 1 turn
+	- start enemy turn effects
+	- enemy actions
+	- end enemy turn effects
+- enemy 2 turn
+	- ...
+- ...
+- Round end
+	- resolve round-end effects
+	- remove temporary effects
+	- clear elemental residue unless specified it lasts longer
+	- refresh resources of player and enemies
+	- increment round counter
+	- start next round
+- Player turn
+	- ...
+
+## We need to define the exqct order inside a spell
+creating a formal rule for spell resolution with residue
+CAST FIRE AOE
+        ↓
+Determine affected tiles
+        ↓
+Apply Fire's spell effect
+        ↓
+Check existing residue on each affected tile
+        ↓
+Resolve elemental interactions
+        ↓
+Write Fire residue
+
+
+But then suppose Fire's interaction causes something that affects additional tiles.
+
+For example:
+Fire + Air
+→ Fire Tornado
+→ spreads effect to surrounding tiles
+
+1. this effect will create fire residue on the tiles affect by the effect
+2. yes those tiles can triigger interactions if there is residue already on those tiles
+3. so yes chain reactions are possible
+4. it will resolve after the the first intial trigger has happened
+5. yes it will happen after the original spell and interactions has finished.
+## Formal rule on multiple interactions
+create final resolution order
+
+## Residue model exceptions
+- yes the fire wall have fire residue on the tiles it effects for it enitre duration
+- the golem will apply his elemet on the tiles it walk during its turn or when attacking. So if the golem doesn't attack or move during its turm it will not create any reisude tiles
+- like the wall the trap will make the square its place on have the elemental residue of its element duriing its lifespan
+
+
+## Self spells clarification
+Water Self
+    ↓
+heal 8 HP
+    ↓
+Water + Fire = Nullification
+    ↓
+Fire residue disappears
+
+explanation: yes the water will clear out the elemental residue of the fire on the square the user is standing and casted it on.
+
+## status effect timing
+Round ends
+
+1. Burn damage
+2. Poison damage
+3. Overload discharge
+4. Shock removal
+5. Chill decay
+6. Residue removal
+7. Resource refresh
+
+## effects on entities dying at the end of a round
+Entity dies
+    ↓
+Resolve death effects
+    ↓
+queued effects
+    ↓
+Remove entity?
+
+All effects that are on an entity will still continue to go off even if the entity is already dead.
+
+## Randomness effects
+All combat randomness must originate from the battle/run RNG rather than using arbitrary global random calls.
+
+## rework project architecture
+distrribute the projects architecture as to not create 2 giant managers but let it load balance a bit and keep the logic in check for future proofing.
+BattleManager
+│
+├── TurnManager
+│
+├── Action/Spell System
+│
+├── ElementSystem
+│
+├── StatusSystem
+│
+├── Battlefield/Grid
+│
+├── Combatants
+│
+└── RNG
+
+## Terminology
+|Term|Meaning|
+|---|---|
+|**Element**|Fire, Water, Frost, etc.|
+|**Spell**|A castable ability|
+|**Spell Shape**|Bolt, AOE, Wall, etc.|
+|**Residue**|Temporary elemental state attached to a battlefield tile|
+|**Status Effect**|Burn, Poison, Chill, etc. attached to an entity|
+|**Interaction**|Result of two elements meeting|
+|**Elemental Object**|Wall, Trap, Golem, etc.|
+|**Reaction**|The execution of an interaction|
