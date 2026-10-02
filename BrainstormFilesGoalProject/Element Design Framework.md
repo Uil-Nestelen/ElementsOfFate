@@ -1,653 +1,1248 @@
-Visual connections: [[Elemental Interactions.canvas]]
-# core Identity & Spell shape interactions
-## Spell shapes (Not all elements can make use of all shapes):
-- Bolt
-	- fires a bolt of the certain element, look in the element for specifics
-- AOE
-	- shoots a projectile that lands in a 4x4 square that damages everyone in the zone. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise. So the spell will always affect 16 squares unless specificly stated otherwise.
-- Trap
-	- places a trap on the square selected by the user (cast range t.b.d but for now 3 squares) that explodes when someone else but the caster walks on top of it. this square will be stand by until its activated by an enemy stepping on it or by interaction of another element*.
-	  E.x: there is a trap on one square with the element of fire and there is an AOE wind spell casted if this trap is in the zone its will trigger and create a fire tornado on that square. for extra infomation about the fire tornado look at [[#Element interactions]]
-- Wall
-	- creates a wall on the battlefield that is 8x1 long and can be placed horizontal and vertical but not diagonally and lasts 5 turns. everyone that makes contact with this wall is susceptible to damage or effects produced by the wall.  the wall can not be placed on top of an enemy but it can connect with other walls and if the player wants it it can overlap with an existing. In which case the parts it replaces refresh the 5 turn timer. Walls with the physical property can not be walked through and thus entities can't enter this square. But walls like the fire wall that do not have this property can be walked through. the squares afflicted can have interaction of another element*.
-- Self
-	- the user cast the element on himself, the effect varies depending on the element
-	- temporary concept: other elements can interact with the element the user is covered in. E.x: if the user covered himself in earth and one uses fire on him. the user would instead of protecting take dmg since the earth he covered himself in transformed into magma.
-	  but the opposite is also true. if the user covered himself in water and the enemy casts a fire spell on him it will get nullified.
-- Star
-	- like the AOE spell the user shoots a projectile that lands and deals damage in a zone resembling a star this being a combination of + and x on top of each other. it will be 5 long so (centre included)  in total it will cover 17 squares. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise. 
-- Laser
-	- the user casts a laser in the specified element, the user must sacrifice 3 MP to be able to casts this spell. the spell will then fire and pierce all enemies in a line. like the wall this spell can only be cast horizontal or vertical not diagonally. The Laser has the pierce tag meaning its penetrative capabilities are prioritised. this spell will go through obstacles and if they are destroyable they will be destroyed (think of physical walls or frozen corpses).
-- Cone
-	- the user casts his element in a short cone right in front of him, this is about 90 degree angle and has a reach of 4 squares. this means it will afflict a 4x4 area with  the user being in one of the corners. Since we don't want the user to get hit by its own spell his square is excluded and thus there remain 15 squares that get impacted by this spell. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise.
-- Aura
-	-  the user imbues himself with the elemental magic creating a magic aura around him, this has a reach of 4 squares. the squares afflicted can have interaction of another element* until the end of the round unless specified otherwise.
-- Golem
-	- the user creates a small autonomy golem that will walk to the nearest enemy and attack him. the golem's lifespan is 3 attacks and will attack 1 per turn. the attacks of this golem depend on the element its created from. if the golem is hit by another element it can interact with it will die and initiate that interaction. only 1 golem can be created at a time (for now)
-	- The golem will start walking towards and if possible hit its target the moment it gets summoned during this period the player or enemy ai shouldn't be allowed to do anything, no walking or casting spells.
-	- it acts at the start of the summoners turn
-	- the golem has 3 MP unless walking through difficult terrain which affects MP
-	- it can not pass through other combatants
-	- it can interact with other elements but itself has no hp. it will only die if its element interacts with an elemental interaction or an element that nullifies the element its made out of.
-	- since no entities can walk on top of each other and the golem will always be a physical entity. So no other combatant can enter this square.
-	- if 2 enemies are in the same distance from each other it will path to the one with the lowest hp if they both have the same hp it will path towards a random one an stick with it. the golem will pick its target the moment it spawns and will not change targets afterwards.
-	- it will disappear after 3 doing attacks or earlier if it has interacted with an element.
 
-*every square will for that turn will have the status effect of the casted element tied to those squares, if another element that has an interaction with that element is also applied to those squares there is an elemental interaction. if its an element that cancels with the element on that square nothing happens and it will return to normal. 
+# Elements of Fate — Element & Combat Framework
 
-*Exact sequence for extra context:
-*A square has fire residue, then I cast water on it. It will do the water spell first, then it will detect the fire residue on the square and instead of triggering a reaction it will remove the fire residue and since its a nullification there won't appear water residue the square will just reset to normal square with no residue. But if instead of water it was the dark element that was casted. its neither a nullification or enhancement its a non-interactive element so the result will be that the fire residue is removed and replaced with the dark residue on the square.*
+> **Purpose:** This is the design reference for elemental spells, interactions, residue, statuses, combat timing, and the systems that implement them.
+>
+> **Status:** Rules in this document are the current design unless explicitly marked **TBD / Open Decision**.
+>
+> **Design principle:** Elemental interactions are intentionally capable of creating chaos. Chain reactions are allowed and can create powerful opportunities or backfire on the player.
+
+---
+
+# 1. Core Concepts
+
+## 1.1 Terminology
+
+| Term | Meaning |
+|---|---|
+| **Element** | Fire, Water, Frost, etc. |
+| **Spell** | A castable ability using an element and a spell shape. |
+| **Spell Shape** | The geometric/function type of a spell: Bolt, AOE, Wall, Trap, etc. |
+| **Residue** | A temporary elemental state attached to a battlefield tile. A tile can contain at most one residue element at a time. |
+| **Status Effect** | An effect attached to an entity, such as Burn, Poison, Chill, or Frozen. |
+| **Elemental Resolution** | Determining what happens when a newly applied element meets existing elemental residue. |
+| **Enhancement** | A successful elemental combination that produces a named elemental interaction. |
+| **Nullification** | A pair of elements that cancel each other. Existing residue is removed and the new spell leaves no residue. |
+| **Replacement / No Interaction** | The elements have no special interaction. The new element replaces the old residue. |
+| **Reaction** | The execution of an elemental enhancement. |
+| **Elemental Object** | A persistent battlefield object created by an elemental spell, such as a Wall, Trap, Golem, or special terrain. |
+| **Combatant** | An entity participating in combat: player, enemy, or autonomous combat entity such as a Golem. |
+
+## 1.2 The three possible elemental resolutions
+
+Whenever a new elemental spell affects a tile that already contains elemental residue, exactly one happens:
+
+1. **Enhancement**
+   - The two elements trigger a named elemental interaction.
+   - After the interaction resolves, the newly cast element normally becomes the residue.
+
+2. **Nullification**
+   - The two elements cancel.
+   - Existing residue is removed.
+   - The new spell does not leave residue on that tile.
+   - The tile becomes neutral.
+
+3. **Replacement / No Interaction**
+   - No special reaction occurs.
+   - Existing residue is replaced by the newly cast element.
+
+A tile cannot contain multiple normal elemental residues simultaneously.
+
+---
+
+# 2. Spell Shapes
+
+Not every element can use every shape. The allowed shapes and elemental behaviour are defined in the individual element sections.
+
+## Bolt
+
+- Targets one square.
+- Affects one tile for residue purposes.
+- Damage/status behaviour depends on the element.
+
+## AOE
+
+- Projectile lands in a 4×4 area.
+- Normally affects all 16 squares.
+- Entities in the area receive the spell's elemental effect.
+- Affected squares receive the spell's residue unless elemental resolution changes that outcome.
+- Residue normally lasts until round end.
+
+## Trap
+
+- Places an elemental trap on a selected tile.
+- Current temporary cast range: 3 squares.
+- Normally activates when another entity enters the trap.
+- Can also be activated by an elemental interaction.
+- Remains as an elemental object during its lifespan.
+- Its tile carries the trap's element while the trap exists.
+
+## Wall
+
+- Creates an 8×1 wall.
+- Horizontal or vertical only.
+- Default lifespan: 5 turns.
+- Cannot be placed directly on an enemy.
+- May connect to other walls.
+- Overlapping a wall refreshes the replaced sections' 5-turn timer.
+- A Physical wall blocks movement.
+- A Physical wall blocks normal spells/projectiles that cannot penetrate it.
+- Non-Physical walls can be walked through but may apply their elemental effect on contact.
+- Wall tiles retain their elemental identity for the wall's lifespan.
+- Special removal rules apply; not every spell can remove every wall.
+
+## Self
+
+- Applies the element to the caster.
+- Effect depends on the element.
+- **Self uses the normal elemental-residue rules.**
+- If the caster stands on residue, casting Self can trigger an elemental resolution on that tile.
+- Example: Fire residue + Water Self → Water's normal healing occurs, Fire + Water nullifies, Fire residue disappears, and no Water residue remains.
+
+This is intentional and creates positioning risk/reward.
+
+## Star
+
+- Projectile lands at a target point.
+- Creates a star made from + and ×.
+- Length: 5 squares including the centre.
+- Total area: 17 squares.
+- Affected squares can interact with residue until round end unless otherwise specified.
+
+## Laser
+
+- Requires sacrificing 3 MP to cast.
+- Fires horizontally or vertically.
+- Cannot be cast diagonally.
+- Normally pierces enemies.
+- Has the Pierce property.
+- Can pass through penetrable obstacles.
+- Destroyable obstacles can be destroyed.
+
+## Cone
+
+- Approximately 90 degrees.
+- Reach: 4 squares.
+- Occupies a 4×4 area with the caster in one corner.
+- Caster's square is excluded.
+- Normally affects 15 squares.
+- Affected squares can interact with residue until round end unless otherwise specified.
+
+## Aura
+
+- Imbues the caster with elemental magic.
+- Reach: 4 squares around the user.
+- Affected squares can interact with residue until round end unless otherwise specified.
+- Aura does not receive the persistent-object exception used by Walls, Traps, and Golems.
+- If the caster stands on residue, normal elemental rules apply.
+
+## Golem
+
+- Creates an autonomous elemental golem.
+- Only one golem per caster is allowed for now.
+- Chooses its target when summoned and does not change targets afterwards.
+- Moves toward and attacks its target.
+- If two targets are equally distant:
+  1. Choose the lowest-HP target.
+  2. If HP is also equal, choose randomly using the battle/run RNG.
+- Has 3 MP.
+- Difficult terrain can affect its movement.
+- Cannot move through other combatants.
+- Is a Physical entity and occupies its tile.
+- Has no normal HP.
+- Disappears after 3 attacks, or earlier when destroyed by an applicable elemental interaction.
+- Creates residue from its element on tiles it moves across or interacts with while acting.
+- If it neither moves nor attacks during its turn, it creates no new residue.
+- Can interact with other elements.
+
+### Golem timing — Open Decision
+
+The document contains two conflicting statements:
+
+- The golem begins moving/attacking immediately when summoned.
+- The golem acts at the start of its summoner's turn.
+
+This must be unified before final implementation.
+
+---
+
+# 3. Element System
+
 ## Layer 1
-### Fire
-#### Characteristics
-- DOT
-	-  indirect damage, at end of round (player and enemy turn finished) take damage equal to amount of burn stacks on target and then reduce the stacks by 1/3
-#### Shape Behaviour
-- Spell shapes allowed
-	- Bolt => bolt applies 3 burn
-	- AOE => applies 1 burn to targets in the zone
-	- trap => applying 6 burn
-	- wall => creates a wall of fire  that is 8 x 1 long can be place horizontal and vertical not diagonally. when someone makes contact with the wall the character takes 1 burn. This will give the user one burn when walking through the wall, or if the entity walks in the wall and end his turn he will receive one burn that turn and one burn when he starts his turn since he has already made contact with it again.
-#### Elemental interactions
-- [[#Element interactions]]
-### Earth
-#### Characteristics
-- All spell shapes that create something physically also get the physical tag and become obstacles on the battleground. Ex: the wall will become a physical wall that blocks line of sight and you can't walk through or fire through.
-- all spells will deal direct bludgeon dmg if the spell deals dmg in the first place
-#### Shape Behaviour
-- Spell shapes allowed
-	- self => the user will encase himself in rock making him immune to bludgeon dmg and reducing his remaining MP to 0. this lasts until the start of his next turn where then it crumbles off.
-	- trap => applying 6 dmg
-	- wall => creates a wall of stone  that is 8 x 1 long can be place horizontal and vertical not diagonally. no spells or entities can pass through this terrain and must walk around
-	- golem => creates a stone golem
-#### Elemental interactions
-- [[#Element interactions]]
-### Water
-#### Characteristics
-- the goal of water will be to more of a universal choice that can specialize into things. like it can deal bludgeoning dmg in one spell but stabbing in another, it can also heal instead of dealing dmg. for more examples see blow in shape behaviour.
-#### Shape Behaviour
-- Spell shapes allowed
-	- Bolt => bolt deals 3 dmg
-	- Self => the user encases his wounds with a cleansing water that restores 8 hp
-	- AOE => creates a giant bubble full of water and launches it to the targeted squares
-	- Laser => the user prepares himself and shoots a high pressure laser of water
-#### Elemental interactions
-- [[#Element interactions]]
-### Air
-#### Characteristics
-- the goal of air will be to more of an displacement spell or if its combined to increase the range of effects of other spells in interactions.
-#### Shape Behaviour
-- Spell shapes allowed
-	- Bolt => bolt deals 1 bludgeon dmg
-	- Self => the user encases himself in air making himself feel lighter and gaining 2 extra MP points for this turn.
-	- Cone => the user pushes people away from him. (this will deal 3 bludgeoning dmg if the affected entity then collides with an object or terrain)
-	- Aura => the user calms himself and creates a zone around him where there is a 15% chance a projectile shot at him get bounced back to the caster.
-#### Elemental interactions
-- [[#Element interactions]]
+
+- Fire
+- Earth
+- Water
+- Air
 
 ## Layer 2
-### Void
-#### Characteristics
-- This spell will only have single target spells NO spells that affect multiple squares. 
-- the purpose of this element is more to be used in combination of others and thus will be weaker when cast on his own.
-#### Shape Behaviour
-- Spell shapes allowed
-	- Bolt => bolt deals 3 Psychic dmg
-	- self => the user manipulates the space around him and spells aimed at him must succeed a check to see if they hit. If they don't succeed the spell will fly through the user and land behind him.
-	- Trap => creates a void trap that will not deal dmg but instead eat the next spell flying over it. or if an enemy enters a 3x3 zone around the trap it will instead suck the entity into it and reduce its MP by 2
-	- Golem => Summons a void golem that deals 2 bludgeoning dmg on attack
-#### Elemental interactions
-- [[#Element interactions]]
-### Decay
-#### Characteristics
-- This element has the goal of slowly withering down by an incurable toxin (beside the Aether element)
-#### Shape Behavior
-- Spell shapes allowed
-	- golem => summons a poisonous golem that applies 1 poison on attack
-	- AOE => unleashes a poisonous cloud at the targeted location that applies 3 poison
-	- Trap => creates a poison trap that triggers when an enemy walks on top of it. it then unleashes a strong poisonous gas straight on the enemy applying 6 poison
-	- Star => unleashes a poisonous cloud at the targeted location that applies 3 poison
-#### Elemental interactions
-- [[#Element interactions]]
-### Frost
-#### Characteristics
-- Frost is also more AOE focused and targets the enemies MP points or AP points
-- its element specific status effect will be chill and frozen. chill builds up and then if it reaches a certain threshold it will freeze the target.
-#### Shape Behavior
-- Spell shapes allowed
-	- golem => summons a Frost golem that applies 1 Chill on attack
-	- AOE => unleashes a big ice meteor at the targeted location that applies 1 bludgeon dmg and 1 chill
-	- Bolt => shoots a small icy cube at the target dealing 2 bludgeon dmg and 3 chill
-	- Star => unleashes an big icycle at the targeted location that applies 1 bludgeon dmg and 1 chill
-#### Elemental interactions
-- [[#Element interactions]]
-### Electro
-#### Characteristics
-- Electro spells will apply shock to a target until a certain threshold at which point it will add an overload stack.
-#### Shape Behavior
-- Spell shapes allowed
-	- Aura => the user charges the particales in the air around him making them voletile enemies that come in contact with this aura gain 2 stacks of shock when he enters the zone. They will gain 2 more if they end or start their turn in this as well.
-	- Laser => the user ready's himself and begins charging up a laser of electricity that can pierce obstacles and applies 5 shock
-	- Trap => the user places an electrical discharge trap on a tile when an enemy walks on it it will explode and deal 6 dmg and apply 10 shock
-	- Cone => The user unleashes a short range but powerful zap in front of him dealing 3 dmg and applying 5 shock
-#### Elemental interactions
-- [[#Element interactions]]
+
+- Void
+- Decay
+- Frost
+- Electro
+
 ## Layer 3
-### Light
-####  Characteristics
-- Light specializes in **piercing and purification**.
-- Light can ignore certain forms of physical protection and can interact with obstacles differently than other elements.
-- Light spells are particularly good at attacking through the battlefield rather than around it.
-- Light can also remove certain negative effects from allies.
-- Its identity should be **precision, piercing and cleansing**, rather than simply being "holy damage."
-#### Shape Behavior
-- Spell shapes allowed
-	- **Laser** => Fires a concentrated beam of light in a straight line. The beam pierces enemies and physical obstacles. Obstacles hit by the beam are destroyed (this includes non-physical obstacles like the fire wall as well. (it will then create a hole in the wall removing clearing that square the laser passed through)
-	- **Star** => Creates several beams of light radiating from the target point. Each affected target takes piercing damage.
-	- **Aura** => The user surrounds himself with a field of light. Negative status effects on the user are removed at the start of the user's turn.
-	- **Cone** => Releases a cone of concentrated light. The light pierces through enemies in the cone but stops when it encounters a sufficiently strong obstacle.
-#### Elemental interactions
-- [[#Element interactions]]
-### Dark
-Characteristics
-	- Dark specializes in **debuffs, concealment and weakening enemies**.
-	- Rather than killing enemies quickly, Dark makes them less effective over time.
-	- Dark spells should interact particularly well with enemies that are already suffering from elemental effects.
-	- Dark should feel like the opposite of Light: where Light exposes and pierces, Dark obscures and weakens.
-#### Shape Behavior
-- Spell shapes allowed
-	- **Self** => The user envelops himself in darkness, making him harder to target. Attacks against him have a chance to miss until the start of his next turn.
-	- **AOE** => Creates a zone of darkness at the targeted location. Enemies inside the zone have reduced vision/range while inside it.
-	- **Wall** => Creates a wall of darkness that applies a temporary weakening effect to enemies that walk through it
-	- **Cone** => Releases a wave of darkness that deals psychic damage and applies a temporary weakening effect to affected enemies.
-#### Elemental interactions
-- [[#Element interactions]]
-### Aether
-Characteristics
-- Aether represents **purity, energy and restoration**.
-- It is the primary counter to Decay's incurable poison.
-- Aether should be less about raw damage and more about **removing, restoring and manipulating magical effects**.
-- Aether can cleanse certain elemental statuses and restore resources.
-#### Shape Behavior
-- Spell shapes allowed
-	- **Self** => The user surrounds himself with Aether, restoring a small amount of HP and removing one negative status effect and Decay's poison if the user is suffering from it.
-	- **Golem** => Summons an Aether construct that follows the user and periodically restores a small amount of HP to nearby allies.
-	- **Wall** => Creates a wall of condensed Aether. Projectiles passing through the wall are purified/empowered while hostile status effects attempting to cross it are removed.
-	- **Laser** => Fires a beam of concentrated Aether that deals piercing psychic damage and removes one positive buff from enemies it hits.
-#### Elemental interactions
-- [[#Element interactions]]
-### Nether
-Characteristics
-	- Nether represents **the unnatural and destructive side of existence**.
-	- Where Void manipulates space, Nether manipulates **life, souls and magical energy**.
-	- Nether should be dangerous to both the enemy and potentially the battlefield itself.
-	- It should have strong synergy with weakened, poisoned, burning or otherwise afflicted targets.
-#### Shape Behavior
-- Spell shapes allowed
-	- **Aura** => The user surrounds himself with a draining aura. Enemies entering or ending their turn inside it lose HP, while the user gains a small amount of HP.
-	- **Wall** => Creates a temporary Nether barrier. Entities that pass through it lose 1 AP.
-	- **Laser** => Fires a concentrated beam of Nether energy that deals psychic damage. The beam becomes stronger against enemies suffering from a status effect.
-	- **Cone** => Releases a wave of Nether energy that deals psychic damage and consumes one existing elemental status on each affected enemy to deal additional damage.
-#### Elemental interactions
-- [[#Element interactions]]
 
-# Element interactions
-## Enhancements
+- Light
+- Dark
+- Aether
+- Nether
 
-| Element 1 | Element 2 | Result Name         | Explanation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| --------- | --------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Fire      | Earth     | Magma               | the entity or entities that are trapped in this are severely burned and have a hard time escaping. Thus receiving 6 burn and receive a -1 movement penalty this turn.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Fire      | Air       | Fire Tornado        | the entity is trapped in a brutal fire tornado spreading the fire from the initial square to surrounding once. So if the original square were to deal 6 damage all entities in the 3x3 zone around the original square would receive 6 burn. if the original square was 1 all would receive 1.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Fire      | Void      | Implosion           | the square implodes all entities around the square where this effect initialled happened are pulled inwards. Entities in a 5x5 zone of the original reaction of the square. All entities affected additionally also take a flat amount of dmg (T.B.D)<br><br>NOTE TO SELF: Entities can not stand on the same square, thus place them close together around the square where the reaction took place.<br><br>ANOTHER NOTE TO SELF: Don't make element void an AOE spell to prevent multiple implosions                                                                                                                                                                                                                                                                                                                                       |
-| Fire      | Decay     | Corrosive Burn      | The entities gets burned and poisoned at the same time. This interaction will check the affected entity which one of its status effects is higher between burn and poison, then it will pick the heighest status affect and add + 3 to that and the it will then make sure the other status effects get set to the buffed to the same value as the buffed one.<br>Ex. if the affected entity had 3 burn and 2 poison, burn will get + 3 being 6 burn and 2 poison but then poison gets set to the same value as burn. resulting in the entity having 6 burn and 6 poison.                                                                                                                                                                                                                                                                    |
-| Fire      | Electro   | Electrical Overload | The entity(s) that get affected by this interaction get overloaded by energy storing it until the end of the round (when the player and all enemies have taken their turn). When the round ends all overloaded unites discharge the stored energy in a 3x3 field around the entity the damage is based on the number of overload stacks. This interaction gives 3 stacks.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Earth     | Fire      | Magma               | the entity or entities that are trapped in this are severely burned and have a hard time escaping. Thus receiving 6 burn and receive a -1 movement penalty this turn.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Earth     | Water     | Mud Puddle          | The entities feet get sucked into the muddy ground making it unable to move freely. this interaction reduces the MP of the entity by 2 rounding up. so if the entity has 3 MP he will have 1 left.<br>Hidden interaction: if the frost element is used after this on the same tile it will freeze the mud shut making the entity unable to move at all. (this is on top of the other interactions that may happen)                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| Earth     | Decay     | Tarpit              | The entity is covered in a thick tar layer making it more suspectable to fire or electro. This means the next fire move that hits the target before the round is over will inflict twice as much burn stacks. If electro hits the target it will ignite the target giving it 6 burn stacks (this is not doubled).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Earth     | Void      | Earthquake          | The ground starts shaking heavily on this square making the entities on top of it unstable and inflicting 4 bludgeon damage. if there are wall spells nearby that have the physical property the damage is x3 so being 12 damage. if there are 2 walls nearby this damage is done twice so 24 dmg. all walls are destroyed in the process.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Earth     | Frost     | Frost quake         | the harsh cold makes the ground split open. Sharp shards of the earth pierce the feet of the entity stepping in this square. Making the entity take 2 stabbing damage.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Water     | Earth     | Mud  Puddle         | The entities feet get sucked into the muddy ground making it unable to move freely. this interaction reduces the MP of the entity by 2 rounding up. so if the entity has 3 MP he will have 1 left.<br>Hidden interaction: if the frost element is used after this on the same tile it will freeze the mud shut making the entity unable to move at all. (this is on top of the other interactions that may happen)                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| Water     | Air       | Cyclone             | The entity is lifted and spun around the affected square. At the end of its turn, the entity is displaced 2 squares in a random direction.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Water     | Frost     | PermaFrost          | The affected squares become frozen terrain for 2 rounds. Entities standing on the affected squares have their MP reduced by 1. Entering the terrain costs additional movement.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Water     | Decay     | Blightwater         | The affected square becomes contaminated for 2 rounds. Any entity that enters or ends its turn on the square receives 2 Poison. The contamination spreads to adjacent Water-affected squares that have the water element residue at the end of the round. lets say the player casted 2 AOE water spells and then his last spell was a decay bolt. that square the bolt lands on is now blight water for 2 rounds. the water elemental residue on the neighbouring squares of blight water can then be transformed into contaminated water. This is exceptional because normally the residue disappears at the end of the round. the spread is only 1 square from the original contaminated or blight water square. this means that if the player keeps casting AOE water spells he can continuously increase the zone of contaminated water. |
-| Water     | Electro   | Conductive Surge    | The electrical energy travels through all entities standing on connected Water-affected residue squares. The first target receives the full damage, while each subsequent target receives reduced damage.<br><br>For example:<br><br>**Target A (4 dmg)→ Target B(3dmg) → Target C(2dmg) → Target D(1dmg)**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Air       | Water     | Cyclone             | The entity is lifted and spun around the affected square. At the end of its turn, the entity is displaced 2 squares in a random direction.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Air       | Fire      | Fire Tornado        | the entity is trapped in a brutal fire tornado spreading the fire from the initial square to surrounding once. So if the original square were to deal 6 damage all entities in the 3x3 zone around the original square would receive 6 burn. if the original square was 1 all would receive 1.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Air       | Electro   | Lightning Storm     | 5 Lightning strikes random squares within the affected area at the end of the round. Each entity within the area has a chance of being struck (20%). each strike also applies 3 overload.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Air       | Frost     | Blizzard            | The Blizzard remains for 2 rounds. Anyone starting their turn inside receives 2 Frost stacks and loses 1 MP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Air       | Void      | Gravity Vortex      | the enormous force of this interaction will displace the entity stuck by it. The entity struck will be displaced towards the nearest obstacle or structure (this includes walls with the physical property). The entity will be displaced 3 squares for this and if it makes contact with the obstacle or structure it will take damage according to how many of the 3 squares the displacement had to use so if it only had to use 1 square it will take 6 bludgeon dmg if it was 2 squares it had to use it will take 3 bludgeon dmg, if it had to use 3 squares to end up next to the obstacle it will take 1 bludgeon dmg.                                                                                                                                                                                                               |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Void      | Fire      | Implosion           | the square implodes all entities around the square where this effect initialled happened are pulled inwards. Entities in a 5x5 zone of the original reaction of the square. All entities affected additionally also take a flat amount of dmg 4<br>NOTE TO SELF: Entities can not stand on the same square, thus place them close together around the square where the reaction took place.<br><br>ANOTHER NOTE TO SELF: Don't make element void an AOE spell to prevent multiple implosions                                                                                                                                                                                                                                                                                                                                                 |
-| Void      | Earth     | Earthquake          | The ground starts shaking heavily on this square making the entities on top of it unstable and inflicting 4 flat damage. if there are wall spells nearby that have the physical property the damage is x3 so being 12 damage. if there are 2 walls nearby this damage is done twice so 24 dmg. all walls are destroyed in the process.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Void      | Air       | Gravity Vortex      | the enormous force of this interaction will displace the entity stuck by it. The entity struck will be displaced towards the nearest obstacle or structure (this includes walls with the physical property). The entity will be displaced 3 squares for this and if it makes contact with the obstacle or structure it will take damage according to how many of the 3 squares the displacement had to use so if it only had to use 1 square it will take 6 bludgeon dmg if it was 2 squares it had to use it will take 3 bludgeon dmg, if it had to use 3 squares to end up next to the obstacle it will take 1 bludgeon dmg.                                                                                                                                                                                                               |
-| Void      | Electro   | Arcane Blackout     | This is special unusual interaction because it makes it so that everyone on the battlefield is unable to cast spells for the next 2 rounds (the round when the interaction happen in counts as the first round).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Void      | Decay     | Miasma              | The place where this interaction takes place suffers from sever Miasma making the square uninhabitable. Causing anyone that starts there turn in this square to take 3 poison and everyone who ends there turn to take 3 poison. the fog will remain in this square for 2 rounds. Ex. the entity starts there turn in the Miasma and finishes there turn in the Miasma will get 6 poison added and  the next turn if they start there turn there it will receive another 3 poison.                                                                                                                                                                                                                                                                                                                                                           |
-| Void      | Dark      | Umbral Abyss        | The entity struck by this phenomenon will become lost and lose track of its enemy(s).  This means if the player is stuck by this interaction it will lose visibility of all enemies and the enemies will become invisible for the remainder of that round.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Decay     | Earth     | Tarpit              | The entity is covered in a thick tar layer making it more suspectable to fire or electro. This means the next fire move that hits the target before the round is over will inflict twice as much burn stacks. If electro hits the target it will ignite the target giving it 6 burn stacks (this is not doubled).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Decay     | Water     | Blightwater         | The affected square becomes contaminated for 2 rounds. Any entity that enters or ends its turn on the square receives 2 Poison. The contamination spreads to adjacent Water-affected squares that have the water element residue at the end of the round. lets say the player casted 2 AOE water spells and then his last spell was a decay bolt. that square the bolt lands on is now blight water for 2 rounds. the water elemental residue on the neighbouring squares of blight water can then be transformed into contaminated water. This is exceptional because normally the residue disappears at the end of the round. the spread is only 1 square from the original contaminated or blight water square. this means that if the player keeps casting AOE water spells he can continuously increase the zone of contaminated water. |
-| Decay     | Fire      | Corrosive Burn      | The entities gets burned and poisoned at the same time. This interaction will check the affected entity which one of its status effects is higher between burn and poison, then it will pick the heighest status affect and add + 3 to that and the it will then make sure the other status effects get set to the buffed to the same value as the buffed one.<br>Ex. if the affected entity had 3 burn and 2 poison, burn will get + 3 being 6 burn and 2 poison but then poison gets set to the same value as burn. resulting in the entity having 6 burn and 6 poison.                                                                                                                                                                                                                                                                    |
-| Decay     | Void      | Miasma              | The place where this interaction takes place suffers from sever Miasma making the square uninhabitable. Causing anyone that starts there turn in this square to take 3 poison and everyone who ends there turn to take 3 poison. the fog will remain in this square for 2 rounds. Ex. the entity starts there turn in the Miasma and finishes there turn in the Miasma will get 6 poison added and  the next turn if they start there turn there it will receive another 3 poison.                                                                                                                                                                                                                                                                                                                                                           |
-| Decay     | Frost     | Necrofrost          | Entities killed while affected by Necrofrost leave behind a frozen corpse. The corpse remains on the battlefield and counts as an physical object. If this object is broken ice shards will shoot out and break the frozen permanently deleting if from the battlefield. These frozen shards that shoot out in a 5x5 square and deal 5 piercing dmg.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Decay     | Nether    | Corpse Explosion    | The entity affected by this gets struck by an unusual force, it makes it heart beat irregular. feeling like it wants to burst form the inside out. the affected entity takes 5 direct dmg non-type specific. if this damage kills the user it will burst open and other entities in a 4x4 zone from the explosion will take 4 bludgeoning damage from the chunks flying around.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Frost     | Water     | PermaFrost          | The affected squares become frozen terrain for 2 rounds. Entities standing on the affected squares have their MP reduced by 1. Entering the terrain costs additional movement.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Frost     | Air       | Blizzard            | The Blizzard remains for 2 rounds. Anyone starting their turn inside receives 2 Frost stacks and loses 1 MP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Frost     | Earth     | Frost quake         | the harsh cold makes the ground split open. Sharp shards of the earth pierce the feet of the entity stepping in this square. Making the entity take 2 stabbing damage.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Frost     | Electro   | Flash Freeze        | The sudden electrical discharge freezes the entity in place. Its remaining MP is reduced to 0. If the entity had moved at least 2 squares before being hit by Flash Freeze, the sudden stop causes **2 bludgeoning damage**.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Frost     | Decay     | Necrofrost          | Entities killed while affected by Necrofrost leave behind a frozen corpse. The corpse remains on the battlefield and counts as an physical object. If this object is broken ice shards will shoot out and break the frozen permanently deleting if from the battlefield. These frozen shards that shoot out in a 5x5 square and deal 5 piercing dmg.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Frost     | Light     | Refraction          | A godly light shines amplified by the ice crystals piercing all entities in the squares this interaction occurs. this damage can not be negated and will pierce any an all armor or terrain including walls with the physical tag. This will deal 10 damage for the time being.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Electro   | Air       | Lightning Storm     | 5 Lightning strikes random squares within the affected area at the end of the round. Each entity within the area has a chance of being struck (20%). each strike also applies 3 overload.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Electro   | Water     | Conductive Surge    | The electrical energy travels through all entities standing on connected Water-affected residue squares. The first target receives the full damage, while each subsequent target receives reduced damage.<br><br>For example:<br><br>**Target A (4 dmg)→ Target B(3dmg) → Target C(2dmg) → Target D(1dmg)**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Electro   | Fire      | Electrical Overload | The entity(s) that get affected by this interaction get overloaded by energy storing it until the end of the round (when the player and all enemies have taken their turn). When the round ends all overloaded unites discharge the stored energy in a 3x3 field around the entity the damage is based on the number of overload stacks. This interaction gives 3 stacks.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Electro   | Frost     | Flash Freeze        | The sudden electrical discharge freezes the entity in place. Its remaining MP is reduced to 0. If the entity had moved at least 2 squares before being hit by Flash Freeze, the sudden stop causes **2 bludgeoning damage**.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Electro   | Void      | Arcane Blackout     | This is special unusual interaction because it makes it so that everyone on the battlefield is unable to cast spells for the next 2 rounds (the round when the interaction happen in counts as the first round).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Electro   | Aether    | Lightning Tether    | Two entities become connected by a Lightning Tether. Whenever one takes damage, the other receives 20% percentage of that damage as electrical damage. The tether lasts 2 rounds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Light     | Dark      | Umbral Twilight     | The entity that endures this interaction will see the remember the last spot everyone on the battlefield is but if anybody moves after this moves takes place the affected entity will not notice. So lets say the player casts dark and light on an enemy and proq this effect and then moves 3 squares away to a direction the enemy that endures this effect will not see this and will still remember the player on his original position and casts his spells in this square.                                                                                                                                                                                                                                                                                                                                                           |
-| Light     | Frost     | Refraction          | A godly light shines amplified by the ice crystals piercing all entities in the squares this interaction occurs. this damage can not be negated and will pierce any an all armor or terrain including walls with the physical tag. This will deal 10 damage for the time being.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Dark      | Light     | Umbral Twilight     | The entity that endures this interaction will see the remember the last spot everyone on the battlefield is but if anybody moves after this moves takes place the affected entity will not notice. So lets say the player casts dark and light on an enemy and proq this effect and then moves 3 squares away to a direction the enemy that endures this effect will not see this and will still remember the player on his original position and casts his spells in this square. this only lasts one round.                                                                                                                                                                                                                                                                                                                                |
-| Dark      | Void      | Umbral Abyss        | The entity struck by this phenomenon will become lost and lose track of its enemy(s).  This means if the player is stuck by this interaction it will lose visibility of all enemies and the enemies will become invisible for the remainder of that round.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Aether    | Nether    | Paradox             | The interaction stores the last elemental effect applied to the square and repeats it at the end of the round.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Aether    | Electro   | Lightning Tether    | Two entities become connected by a Lightning Tether. Whenever one takes damage, the other receives 20% percentage of that damage as electrical damage. The tether lasts 2 rounds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|           |           |                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Nether    | Aether    | Paradox             | The interaction stores the last elemental effect applied to the square and repeats it at the end of the round.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Nether    | Decay     | Corpse Explosion    | The entity affected by this gets struck by an unusual force, it makes it heart beat irregular. feeling like it wants to burst form the inside out. the affected entity takes 5 direct dmg non-type specific. if this damage kills the user it will burst open and other entities in a 4x4 zone from the explosion will take 4 bludgeoning damage from the chunks flying around.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-## Nullification
-When these elements interact on the battlefield only the dmg of the spells individually will apply. Unless specified it will deal less damage or no damage at all. Keep in mind nullification makes it so no elemental residue remains on the battlefield. For extra information see [[Element Design Framework#Extra context and concepts]]
+---
 
-| Element 1 | Element 2 | Result |
-| --------- | --------- | ------ |
-| Fire      | Water     | None   |
-| Fire      | Frost     | None   |
-|           |           |        |
-| Water     | Fire      | None   |
-| Water     | Void      | None   |
-|           |           |        |
-| Earth     | Air       | None   |
-| Earth     | Electro   | None   |
-|           |           |        |
-| Air       | Earth     | None   |
-| Air       | Decay     | None   |
-|           |           |        |
-| Void      | Frost     | None   |
-| Void      | Water     | None   |
-|           |           |        |
-| Decay     | Air       | None   |
-| Decay     | Electro   | None   |
-|           |           |        |
-| Frost     | Fire      | None   |
-| Frost     | Void      | None   |
-|           |           |        |
-| Electro   | Earth     | None   |
-| Electro   | Decay     | None   |
-## No Interactions
-All the rest not mentioned above. This means that the elemental residue of will change to latest used element, this means that it didn't trigger a enhancement or nullified the square back to normal.
-# Damage and status effects
-## Status types:
-- Burn
-	damage equal to burn stacks at end of round, then reduce stacks by 1/3.
-- Poison
-	damage equal to half the stacks (rounded down) at end of round.
-- Chill
-	Stacks up until 10 at which chill is removed and the target becomes frozen. if the target didn't get frozen at the end of the turn remove 4 chill stacks
-- Frozen
-	the entity is frozen and can't move during his turn
-- Shock
-	energizes the entity until 20 stacks at which point the entity will gain 1 overload stack. Shock gets completely removed at the end of the round.
-- Overload
-	When the round ends all overloaded unites discharge the stored energy in a 3x3 field around the entity the damage is based on the number of overload stacks.
-- Weakening
-	the entity affected by this affliction will deal 2/3 of its damage instead of the usual 3/3. This does not affect status type moves only the dmg part of spells and interactions
-- blindness/visibility effects
-	Depends on the spell itself some make everyone invisible, some show the last position of the player, some make only make enemies or player invisible.
-- MP reduction
-	reduces the default cap of 3 movement points. (note: there will be relics or shrine element powerups that can change these values)
-- AP reduction
-	reduces the default cap of 3 action points. (note: there will be relics or shrine element powerups that can change these values)
+# 4. Element Definitions
 
-## Damage types:
-- indirect
-	Is damage that is not received directly but instead at the end of the entities turn or at the end of the round.
-- Direct
-	Is damage that is received directly when the spell interacts with its target.
-- Psychic
-	Is damage that inflicts the users mind and thus can not be blocked by nullification or blocked by self spell shape variants
-- Bludgeon
-	Is a damage type that is usually when hit by a physical blunt magic projectile or contact with an obstacle with the physical property.
-- Stabbing
-	Is a damage type that is usually when hit by something that is physical but also sharp instead of blunt. like a knife or a icicles.
-- Pierce
-	Like the physical variant of psychic, it will usaully deal less damage then blugeon or stabbing projectiles but has the benefit of being able to pierce some defensive self spellshapes and being able to pierce walls and obstacles with the physical property.
+## 4.1 Fire
 
-# Extra context and concepts:
-- chain reactions
-	So for chain reactions you first need to understand elemental residue. chain reactions are possible in the context of the following example. lets say the player casts a spell doesn't matter which one it will leave elemental residue on the tiles the spell interacted with. An AOE spell will affect 16 squares while a bolt only affects 1. then our player casts another spell that has an elemental reaction with the element the player casted first. the last element casted will then interact with the elemental residue of the first element. Thus creating an effect, now the last spells elemental residue remains on those squares. if the player with his last AP (action point) casts his final spell and it happens to interact with that element as well there would be another elemental interaction. So in short there can be multiple elemental interactions on the same turn the same thing counts for walls and self spell shapes. if the user is standing on a square with elemental residue and the user casts self and those 2 elements have an interaction one will take place. so you have to be careful in what squares you casts spells to help yourself if the enemy has elements that interact with them.
+### Identity
+Damage over time.
 
-- Elemental residue
-	 Elemental residue occurs when an entity casts a spell. The squares that had to interact with said squares are not still lingering with the elemental magic from the used element. This means if I cast a fire bolt only one square gets affected with fire residue. But if I instead cast a fire AOE that affects 16 squares, All 16 squares will have fire residue. Elemental residue will always disappear when the round (A round is over when both parties have taken their turn and pressed end turn. This means the player has ended their turn and all enemy or enemies have ended their turn) is over.
-	 
-	 Now what is the point of elemental residue? Elemental residue's only purpose is so that other elements can interact with it on the battle field. If some elemental residue is affecting a square and another spell comes in contact with it there are 3 things that can happen.
-	 
-	 1. Enhancement: The elemental residue will react with the new element that is has interacted with the squares it resides and an elemental interaction will occur. After the elemental interaction occurred the last element casted stays on that square.
-	Example:
-	Lets say I cast Fire AOE on an enemy the enemy will receive burn from this spell and this will affect 16 squares, all these squares are now containing elemental residue of the fire element. Now lets say I cast Decay AOE on that same enemy this spell will do its thing and inflict 3 poision. But then the Decay residue interacts with the fire residue and unleases their respective elemental reaction in this case: corrosive burn. But this won't happen on only the square of the enemy. Since the 16 squares of fire are the same selected squares of decay all 16 squares will create the corrosive burn. Now for this specific interaction nothing happens on the other squares where no enemies are present. After this interaction the latest element will remain imbued in those squares until the round is over at which point the squares elemental residue rests with exception: wall, golem, trap.
-	one small note to add to this is that for the 3 spell shapes mentioned there is still to be thought out how they would interact with all of this since it would be kind of pointless to summon a golem in a fire residue zone at which point it would instantly despawn just to trigger its elemental interaction which is kind of lame but also makes it more tactical.
-	
-	 2. Nullification: The elemental residue will not react with the new casted element. On the contrary the element dislike each other so much they remove the current elemental residue on the square if there is any and the casted spell won't leave any residue either. So the square become neutral and contains no residue.
-	Example:
-	lets say I cast fire AOE on an enemy the enemy will receive burn from this spell and this will affect 16 squares, all these squares are now containing elemental residue of the fire element. Now lets say I cast Water AOE on the same enemy on the same tiles. the enemy would just take the damage from the spell but not elemental residue gets left behind and the elemental residue that was active in this case fire would get swept away resulting in all 16 squares returning to normal squares with no elemental residue.
-	
-	 3. non-interactive: The elemental residue will not react with the newly casted element. But unlike nullification where the residue disappears, this new element will just replace the old one.
-	Example:
-	lets say I cast fire AOE on an enemy the enemy will receive burn from this spell and this will affect 16 squares, all these squares are now containing elemental residue of the fire element. Now lets say I cast dark AOE on the same enemy, the enemy will receive dmg or status effect from the dark spell and all the elemental fire residue will get replaced by the dark one. so from 16 fire residue -> 16 dark residue.
+### Status
+**Burn**
+- Indirect damage.
+- At round end, an entity takes damage equal to Burn stacks.
+- Burn stacks then decrease by 1/3.
 
-# Combat Resources
-## AP ( Action points)
-- Ap is a resource the player an his opponents have to decide how many actions it can do before its turn is over. As default the player and his opponents have 3 AP meaning the player an its opponents can cast 3 spells (unless its afflicted by something that reduces this amount). At the end of each round the player and the enemies AP gets refreshed back to its maximum value. AP can and never will go below 0. there are moves/effects that can increase the amount of AP points gained for a turn. these effects must always specify how much they increase it by and if its only temporary (for one round or multiple rounds and if its for 1 combat or multiple) or if its permanent (it will persists for all combats and all its turn in that combat during its run. Items or buffs can not be transfer to other runs!!!!)
+### Shape behaviour
 
-## MP (Movement points)
-- MP is a resource the player an his opponents have to decide how many movement it can do before its turn is over. As default the player and his opponents have 3 MP meaning the player an its opponents can move 3 squares (unless its afflicted by something that reduces this amount). At the end of each round the player and the enemies MP gets refreshed back to its maximum value. MP can and never will go below 0. there are moves/effects that can increase/decrease the amount of MP points gained for a turn. these effects must always specify how much they increase it by and if its only temporary (for one round or multiple rounds and if its for 1 combat or multiple) or if its permanent (it will persists for all combats and all its turn in that combat during its run. Items or buffs can not be transfer to other runs!!!!)
+- **Bolt:** 3 Burn.
+- **AOE:** 1 Burn.
+- **Trap:** 6 Burn.
+- **Wall:** Fire Wall, 8×1.
+  - Contact applies 1 Burn.
+  - Walking through applies Burn.
+  - Ending a turn in it applies Burn.
+  - Starting the next turn while still in contact can apply Burn again.
 
-# Elemental layers and shrines explained
- 
-- ## how to acquire the first elements
-	The first element a player starts with is obtained when selecting his starting wizard. this will be one of the four layer 1 elements. So he can choose between: fire, air, water and earth.
-	
-- ## how to acquire more elements
-	Elements are acquired by visiting shrines and selecting one of three options. the most left option will always try to provide an upgrade to the player. This upgrade can either be changing the element to the one in the next layer or by selecting a perk. this means if you start with the fire element it will go as followed: fire -> void - > dark. its important to note that if you select a perk for an element you won't be able to change it anymore. So if I go from fire to void and then select a perk at the void level you won't be able to upgrade it to dark anymore. 
-	
-	What is possible is for the user to get all 3 elements from the same side so: fire, void, dark. To achieve this he just has to pick fire and go to shrines to change his element to the next level. Then continue to do so if the user arrived at dark he doesn't have to pick a perk upgrade to lock it since there are no other elements to go to. The same will count for void since the user already has dark void will be locked from changing since no duplicates elements are allowed. Now if the user fist goes to void and then wants to upgrade his fire element he will only get the option to select a perk from fire wile void will have both options. If he then got a perk for void and a perk for fire he won't be able to get the fire element since he can't get fire as an element again only extra perks for the fire element. the shrine will do its best to always try and provide at least 1 upgrade. the other 2 are randomised and can give anything. unless the user has all 3 spell shapes infused with elements. At which point the shrine can only provide those 3 elements.
-	
-- ## Perks explained
-	Now what are perks, they are together the only way to upgrade elements together with some relics but not all of the relics. Now perks don't inherently upgrade the damage of an element. Instead it will modify a certain portion of the element For example frozen right now deals no damage but maybe when you go frost and select a hyperthermia perk frozen now not only disables the enemy but it now also starts doing damage. So to summarise Perks are not base damage increase upgrades but rather indirect upgrades or they can change the base characteristics of an element.
+## 4.2 Earth
 
-# Encounter Types Explained
-- ## Combat
-	Combat is plain and simple the player has to battle an enemy. If he succeeds he wins some money he can spend in the shop to buy relics. If the player's health reaches 0, he loses and has to start a new run.
-- ## Elite
-	Elite is like combat but on steroids but the reward is also greater. The difficulty I am aiming for is either x1,5 or x2 times more dificult then normal combat.
-- ## Shrine
-	The shrine is a structure where the player is able to increase his spells power or swap them out for new elements (note: the player can't swap his spell shapes during the run only at the start of his run can he prepare them and swap in and out like he pleases.)
-- ## Shop
-	Is an encounter where the player is able to spend the money he earned from combats to buy relics or health (that's it for now)
-- ## Event
-	
-- ## Rest
-	This is a place where the player is able to sit down and let his health regenerate for a bit (25% of max HP)
-- ## Mystery
-	This is an encounter where you won't be able to see what you will get before going into it. The outcome is coded to be slightly more positive then negative though (51vs49). The mystery encounter has the following options: Shrine, shop, rest, treasure, combat, elite, trap. Thus when picking Mystery you will receive one of those at random.
-- ## Treasure
-	Treasure is the place where the player is able to get Relics and build up his collection of this.
-- ## Trap
-	The trap is only encountered through the mystery encounter and will damage the player for 7.5% of his max HP
-- ## Boss
-	The boss is the last encounter a player will have to face at the end of each floor. This encounter will be x3 or x4 as difficult as the normal combat encounter. The element of the boss will also depend on the class the player picked to start.
-	
-	The boss his difficulty will alter depending on the selected game difficulty. Easy the boss will have elemental spells that get countered by the player. Normal difficulty the boss will receive random spells but will be equipped with relics or boosters. At hard the boss will get spells that counter the player and have relics.
+### Identity
+Physicality, obstacles, blunt force.
 
-extra information called battle rules:
-- Does every pair of elements need an explicit result?
-	- no, there are 3 options or the elements enhance each other or they nullify each other or they don't interact with each other see chapter about elemental residue
-- What exactly is "no interaction" vs "nullification"
-	- see chapter about elemental residue
-- can a tile contain multiple elemental residue
-	- no, it can not. Each tile has 2 states, its either occupied or not occupied and its either neutral or it has 1 element bound to it for that round unless specified otherwise. The next element with that square then has 3 options: enhance, nullify, no interaction
-- Exactly when does an interaction trigger?
-	- An elemental reaction triggers when there is already elemental residue on the tile and a spell that affects that tile or tiles which have elemental residue and the 2 elements that are interacting are in the enhancement table.
-- Can interactions chain into other interactions
-	- see chain interactions
-- how each elemental status work mechanically 
-	- see [[Element Design Framework#Damage and status effects]]
-- what exactly do AP and MP mean and when do they refresh.
-	- see [[Element Design Framework#AP ( Action points)]]
-- What are the exact geometry rules for each spell shape
-	- should be explained in the [[Element Design Framework#Spell shapes (Not all elements can make use of all shapes)]]
-- How do damage types interact with defenses.
-	- This ill need to specify more I think but I first need to see where I said there would be damage negation or reduction
-- Which parts of elemental behaviour are upgradable
-	- This will be done in shrines with the perk system that needs to be build out. The concept is already described in [[#Elemental layers and shrines explained]]. But what exactly the perks are for each element needs to be worked out still.
+### Characteristics
 
+- Spell shapes that physically create something gain the Physical property.
+- Physical creations become battlefield obstacles.
+- Physical walls block movement and normal projectile paths.
+- Earth damage is normally direct Bludgeon damage.
 
-Exact order of spell resolution
-1. Player selects fire AOE
-2. checks if player is able to cast it and has enough AP
-3. Player select square he wants the spell to land at.
-4. player shoots spell at location
-5. Players AP gets reduced by 1
-6. spell interacts with enemy and squares.
-	1. Enemy receives status effect (in this case 1 burn) from fire AOE
-	2. Check if the tiles the spell affects have elemental residue (in this case check 16 tiles), right now there is none
-	3. spell interacts with tiles: All affected squares get elemental residue (fire)
-7. Player is able to move and cast spells again as long as he has AP left
-   
-8. Player selects Decay AOE
-9. checks if player is able to cast it and has enough AP
-10. Player select square he wants the spell to land at.
-11. player shoots spell at location
-12. Players AP gets reduced by 1
-13. spell interacts with enemy and squares.
-	1. Enemy receives status effect (in this case 3 poision)
-	2. Check if the tiles the spell affects have elemental residue (in this case check 16 tiles), The tiles have fire residue. Thus since fire + decay = corrosive burn, all 16 squares where the fire residue reacts with the decay spell apply corrosive burn to the entity on the tiles
-	3. After elemental enhancement all 16 tiles the spell hit get elemental residue (decay
+### Shape behaviour
 
-14. Repeat until all AP is spent
+- **Self:** Encases the user in rock, makes them immune to Bludgeon damage, and sets remaining MP to 0 until the start of their next turn.
+- **Trap:** 6 damage.
+- **Wall:** Physical stone wall, 8×1; spells and entities cannot pass through it.
+- **Golem:** Stone Golem.
 
-## What happens when an interaction affects another tile
-For example:
-**Fire + Air → Fire Tornado**
+## 4.3 Water
 
-You say it spreads the initial fire effect to a 3×3 area.
-We need to establish whether those newly affected tiles:
-receive Fire residue and this residue can trigger further elemental interactions.
+### Identity
+Versatility and adaptability.
 
+Water can specialise into damage, healing, physical effects, and other functions.
 
-## Entities vs elemental residue
+### Shape behaviour
 
-For golem, trap and wall the elemental residue effect works a bit different indeed so that its not to lame an the spells that are meant for setups are blown instantly. So instead of them disappearing when summoned/walk on a tile with elemental residue nothing will happen beside the elemental residue changing element from the old element to the new one. Enemies can still the golem if they directly hit the golem with a spell, this is fair since you spend an AP resource to remove it from the battlefield. Same goes for the trap the wall is its own obstacle so only some things are able to remove it not every spell or interaction.
+- **Bolt:** 3 damage.
+- **Self:** Restores 8 HP.
+- **AOE:** Large water bubble launched at the target area.
+- **Laser:** High-pressure water laser.
 
-Self and aura don't follow those rules above but rather the normal rules since its a form of skill expression and I like the idea of you getting punished by casting the spell when you are standing in elemental residue. This way the player has to be carful and plan on when to use these spells. So if the user casts spell shape self with an element while standing on some elemental residue it can trigger an elemental enhancement (so be carful :D)
+## 4.4 Air
 
-## Movement/displacement needs a formal ruleset
-### What happens when pushed into:
+### Identity
+Displacement and extending other elemental effects through interactions.
 
-- another entity?
-	- Takes bludgeoning damage from being pushed into another hard object (not a lot of dmg though, not sure yet how much)
-- a wall?
-	- For walls with the physical property: Takes bludgeoning damage from being pushed into a hard object.
-	- For other walls: The user phases in the wall or through and takes the effect or status effect of the wall as if he walked into it. so if its a fire wall he will receive the burn effect.
-- the edge of the battlefield?
-	- Lets say the battlefield is surrounded by all walls with the physical property.
-- an impassable tile?
-	- Is an object with the physical property so see wall with physical property.
-- multiple obstacles?
-	- I don't know any case where an entity would be pushed against multiple walls or objects at the same time.
-- a newly created wall?
-	- same as an old wall see walls.
+### Shape behaviour
 
-Does displacement consume MP?
+- **Bolt:** 1 Bludgeon damage.
+- **Self:** Grants 2 additional MP for the current turn.
+- **Cone:** Pushes affected entities; collision can deal 3 Bludgeon damage.
+- **Aura:** 15% chance for a projectile aimed at the user to bounce back toward the caster.
 
-no, Since the movement is involuntary and the movement is done through magic and not the energy. It would be epic that the entity uses elemental interactions on itself to move further than he would normally be capable off.
+## 4.5 Void
 
+### Identity
+Single-target manipulation and combination.
 
-## Damage types need one more layer of definition
-The main 2 types that might need an extra explanation is psychic and piercing damage.
+### Characteristics
 
-Psychic is a form of damage made in the game so that some defence buffs are not completely invurenable. whilst piercing damage is in the game for people that absolutely want to hit someone and scarifies damage for it. The goal for piercing damage is to have a source that is able to penetrate terrain. So earth self wouldn't be resistant against both of these but lets say that the entity would be moved and smacked against a wall or object it wouldn't receive damage.
+- Normally only single-target spells.
+- No normal multi-target spell shapes.
+- Intended to be weaker alone and powerful in combinations.
 
-## Status timing
-Just to clear up the chill and frozen mechanic. chill can be applied to a entity by a variety of sources. But the most important part is when an entity reaches 10 stacks of chill it will immediately become frozen. It doesn't matter if it happens during his turn or during the enemies turn or at the end of the turn. So every time chill gets applied to entity there needs to be checked if how many stacks it already have and if you add x amount more if it reaches 10 and freezes the target.
+### Shape behaviour
 
-## The shrine/perk system needs to be designed before implementation
-Still need to be thought out and implemented
+- **Bolt:** 3 Psychic damage.
+- **Self:** Incoming spells must pass a hit check; a failed spell passes through the user and lands behind them.
+- **Trap:** Can eat the next spell travelling over it, or pull an enemy entering its 3×3 zone and reduce its MP by 2.
+- **Golem:** Void Golem dealing 2 Bludgeon damage on attack.
 
-# One important inconsistency I noticed
+## 4.6 Decay
 
-There is one thing I definitely want us to clean up before using this as our "law".
+### Identity
+Slow, persistent, difficult-to-remove poisoning.
 
-You currently have:
+Aether is the primary elemental counter to Decay poison.
 
-> "An elemental reaction triggers when there is already elemental residue on the tile and a spell that affects that tile or tiles which have elemental residue and the 2 elements that are interacting are in the enhancement table."
+### Shape behaviour
 
-That's correct for normal enhancement.
+- **Golem:** 1 Poison on attack.
+- **AOE:** 3 Poison.
+- **Trap:** 6 Poison when triggered.
+- **Star:** 3 Poison.
 
-But your three-state system is actually broader:
+## 4.7 Frost
 
-```
-Existing residue
-       +
-New element
-       ↓
- ┌───────────────┐
- │ Enhancement   │
- │ Nullification │
- │ No interaction│
- └───────────────┘
-```
+### Identity
+Area control and resource disruption.
 
-So technically **an elemental interaction** should probably be distinguished from an **elemental enhancement**.
+Frost focuses on MP/AP manipulation and Chill/Frozen.
 
-Otherwise we're going to end up with terminology problems in code.
+### Shape behaviour
 
-I'd like us to establish something like:
+- **Golem:** 1 Chill on attack.
+- **AOE:** 1 Bludgeon damage + 1 Chill.
+- **Bolt:** 2 Bludgeon damage + 3 Chill.
+- **Star:** 1 Bludgeon damage + 1 Chill.
 
-> **Elemental Resolution** = checking the relationship between two elements.
+## 4.8 Electro
 
-Then the result is:
+### Identity
+Shock accumulation and Overload.
 
-- Enhancement
-- Nullification
-- Replacement
+### Shape behaviour
 
-That's much cleaner for the eventual implementation.
+- **Aura:** Entities entering gain 2 Shock; they gain 2 more when they end or start their turn in it.
+- **Laser:** 5 Shock and can pierce obstacles.
+- **Trap:** 6 damage + 10 Shock.
+- **Cone:** 3 damage + 5 Shock.
 
-## what is a round:
-A round will usually have the following structure:
-- Player turn
-	- Start playre turn effects
-	- player actions
-	- end player turn effects
-- enemy 1 turn
-	- start enemy turn effects
-	- enemy actions
-	- end enemy turn effects
-- enemy 2 turn
-	- ...
-- ...
-- Round end
-	- resolve round-end effects
-	- remove temporary effects
-	- clear elemental residue unless specified it lasts longer
-	- refresh resources of player and enemies
-	- increment round counter
-	- start next round
-- Player turn
-	- ...
+## 4.9 Light
 
-## We need to define the exqct order inside a spell
-creating a formal rule for spell resolution with residue
-CAST FIRE AOE
-        ↓
-Determine affected tiles
-        ↓
-Apply Fire's spell effect
-        ↓
-Check existing residue on each affected tile
-        ↓
-Resolve elemental interactions
-        ↓
-Write Fire residue
+### Identity
+Piercing, purification, precision, and cleansing.
 
+### Shape behaviour
 
-But then suppose Fire's interaction causes something that affects additional tiles.
+- **Laser:** Piercing beam. Pierces enemies and physical obstacles and destroys obstacles it hits, including sections of non-physical walls such as Fire Wall.
+- **Star:** Radiating piercing beams.
+- **Aura:** Removes negative status effects from the user at the start of their turn.
+- **Cone:** Pierces enemies but stops at sufficiently strong obstacles.
 
-For example:
-Fire + Air
-→ Fire Tornado
-→ spreads effect to surrounding tiles
+## 4.10 Dark
 
-1. this effect will create fire residue on the tiles affect by the effect
-2. yes those tiles can triigger interactions if there is residue already on those tiles
-3. so yes chain reactions are possible
-4. it will resolve after the the first intial trigger has happened
-5. yes it will happen after the original spell and interactions has finished.
-## Formal rule on multiple interactions
-create final resolution order
+### Identity
+Debuffs, concealment, and weakening.
 
-## Residue model exceptions
-- yes the fire wall have fire residue on the tiles it effects for it enitre duration
-- the golem will apply his elemet on the tiles it walk during its turn or when attacking. So if the golem doesn't attack or move during its turm it will not create any reisude tiles
-- like the wall the trap will make the square its place on have the elemental residue of its element duriing its lifespan
+### Shape behaviour
 
+- **Self:** Attacks against the user have a chance to miss until the start of the user's next turn.
+- **AOE:** Darkness that reduces enemy vision/range.
+- **Wall:** Applies Weakening to enemies passing through.
+- **Cone:** Psychic damage + Weakening.
 
-## Self spells clarification
-Water Self
-    ↓
-heal 8 HP
-    ↓
-Water + Fire = Nullification
-    ↓
-Fire residue disappears
+## 4.11 Aether
 
-explanation: yes the water will clear out the elemental residue of the fire on the square the user is standing and casted it on.
+### Identity
+Purity, restoration, and magical manipulation.
 
-## status effect timing
-Round ends
+### Shape behaviour
 
-1. Burn damage
-2. Poison damage
-3. Overload discharge
-4. Shock removal
-5. Chill decay
-6. Residue removal
-7. Resource refresh
+- **Self:** Restores HP and removes one negative status and Decay Poison.
+- **Golem:** Follows the user and periodically heals nearby allies.
+- **Wall:** Purifies/empowers projectiles passing through and removes hostile statuses attempting to cross it.
+- **Laser:** Piercing Psychic damage and removes one positive buff from enemies.
 
-## effects on entities dying at the end of a round
-Entity dies
-    ↓
-Resolve death effects
-    ↓
-queued effects
-    ↓
-Remove entity?
+## 4.12 Nether
 
-All effects that are on an entity will still continue to go off even if the entity is already dead.
+### Identity
+Destruction, life/soul manipulation, and synergy with afflicted targets.
 
-## Randomness effects
-All combat randomness must originate from the battle/run RNG rather than using arbitrary global random calls.
+### Shape behaviour
 
-## rework project architecture
-distrribute the projects architecture as to not create 2 giant managers but let it load balance a bit and keep the logic in check for future proofing.
-BattleManager
-│
-├── TurnManager
-│
-├── Action/Spell System
-│
-├── ElementSystem
-│
-├── StatusSystem
-│
-├── Battlefield/Grid
-│
-├── Combatants
-│
-└── RNG
+- **Aura:** Drains HP from enemies entering or ending their turn inside and heals the user.
+- **Wall:** Passing through costs 1 AP.
+- **Laser:** Psychic damage; stronger against statused enemies.
+- **Cone:** Psychic damage and consumes one existing elemental status on each affected enemy for additional damage.
 
-## Terminology
-|Term|Meaning|
+---
+
+# 5. Elemental Interactions
+
+## 5.1 Enhancement table
+
+| Element 1 | Element 2 | Result | Effect |
+|---|---|---|---|
+| Fire | Earth | **Magma** | 6 Burn and -1 MP for the current turn. |
+| Fire | Air | **Fire Tornado** | Spreads the original Fire effect into a surrounding 3×3 area using the original Burn amount. |
+| Fire | Void | **Implosion** | Pulls entities in a 5×5 area toward the reaction point and deals 4 damage. Entities cannot occupy the same tile. |
+| Fire | Decay | **Corrosive Burn** | Compare Burn and Poison, take the higher value, add 3, then set both statuses to that value. Example: 3 Burn/2 Poison → 6 Burn/6 Poison. |
+| Fire | Electro | **Electrical Overload** | Adds 3 Overload. Overload discharges at round end in a 3×3 area. |
+| Earth | Fire | **Magma** | Same as Fire + Earth. |
+| Earth | Water | **Mud Puddle** | Reduces MP by 2, rounded up. Frost applied afterwards can freeze the mud shut and prevent movement. |
+| Earth | Decay | **Tarpit** | Next Fire hit before round end applies double Burn. Electro instead ignites for 6 Burn; this is not doubled. |
+| Earth | Void | **Earthquake** | 4 Bludgeon damage. Nearby Physical walls multiply damage by 3 per wall; walls are destroyed. |
+| Earth | Frost | **Frost Quake** | 2 Stabbing damage. |
+| Water | Earth | **Mud Puddle** | Same as Earth + Water. |
+| Water | Air | **Cyclone** | At the end of the affected entity's turn, it is displaced 2 squares in a random direction. |
+| Water | Frost | **PermaFrost** | Creates frozen terrain for 2 rounds. Standing entities lose 1 MP; entering costs additional movement. |
+| Water | Decay | **Blightwater** | Contaminates a square for 2 rounds. Entering or ending a turn there gives 2 Poison. Can spread one tile per round through connected Water residue. |
+| Water | Electro | **Conductive Surge** | Electricity travels through connected Water residue. Example damage chain: 4 → 3 → 2 → 1. |
+| Air | Water | **Cyclone** | Same as Water + Air. |
+| Air | Fire | **Fire Tornado** | Same as Fire + Air. |
+| Air | Electro | **Lightning Storm** | At round end, 5 lightning strikes hit random squares in the affected area. Entities in the area have a 20% chance per strike to be hit. Each strike applies 3 Overload. |
+| Air | Frost | **Blizzard** | Lasts 2 rounds. Anyone starting their turn inside receives 2 Frost stacks and loses 1 MP. |
+| Air | Void | **Gravity Vortex** | Displaces the target 3 squares toward the nearest obstacle/structure. Collision damage depends on how many squares were needed: 1 = 6 Bludgeon, 2 = 3, 3 = 1. |
+| Void | Fire | **Implosion** | Same as Fire + Void. |
+| Void | Earth | **Earthquake** | Same as Earth + Void. |
+| Void | Air | **Gravity Vortex** | Same as Air + Void. |
+| Void | Electro | **Arcane Blackout** | Everyone cannot cast spells for 2 rounds. The current round counts as the first. |
+| Void | Decay | **Miasma** | Affected square is uninhabitable for 2 rounds. Starting or ending a turn there applies 3 Poison. |
+| Void | Dark | **Umbral Abyss** | Target loses visibility of enemies for the remainder of the round. |
+| Decay | Earth | **Tarpit** | Same as Earth + Decay. |
+| Decay | Water | **Blightwater** | Same as Water + Decay. |
+| Decay | Fire | **Corrosive Burn** | Same as Fire + Decay. |
+| Decay | Void | **Miasma** | Same as Void + Decay. |
+| Decay | Frost | **Necrofrost** | Entities killed while affected leave a frozen corpse. Breaking it releases ice shards in a 5×5 area that deal 5 Piercing damage. |
+| Decay | Nether | **Corpse Explosion** | Deals 5 direct non-type-specific damage. If this kills the target, nearby entities in a 4×4 area take 4 Bludgeon damage. |
+| Frost | Water | **PermaFrost** | Same as Water + Frost. |
+| Frost | Air | **Blizzard** | Same as Air + Frost. |
+| Frost | Earth | **Frost Quake** | Same as Earth + Frost. |
+| Frost | Electro | **Flash Freeze** | Remaining MP becomes 0. If the target moved at least 2 squares before being hit, it also takes 2 Bludgeon damage. |
+| Frost | Decay | **Necrofrost** | Same as Decay + Frost. |
+| Frost | Light | **Refraction** | 10 damage. Cannot be negated and pierces armour and terrain, including Physical walls. |
+| Electro | Air | **Lightning Storm** | Same as Air + Electro. |
+| Electro | Water | **Conductive Surge** | Same as Water + Electro. |
+| Electro | Fire | **Electrical Overload** | Same as Fire + Electro. |
+| Electro | Frost | **Flash Freeze** | Same as Frost + Electro. |
+| Electro | Void | **Arcane Blackout** | Same as Void + Electro. |
+| Electro | Aether | **Lightning Tether** | Links two entities. Whenever one takes damage, the other receives 20% of that damage as Electrical damage. Lasts 2 rounds. |
+| Light | Dark | **Umbral Twilight** | Target remembers the last known positions of entities; movement after the effect is not noticed. |
+| Light | Frost | **Refraction** | Same as Frost + Light. |
+| Dark | Light | **Umbral Twilight** | Same interaction; current design specifies a 1-round duration. |
+| Dark | Void | **Umbral Abyss** | Same as Void + Dark. |
+| Aether | Nether | **Paradox** | Stores the last elemental effect applied to the square and repeats it at round end. |
+| Aether | Electro | **Lightning Tether** | Same as Electro + Aether. |
+| Nether | Aether | **Paradox** | Same as Aether + Nether. |
+| Nether | Decay | **Corpse Explosion** | Same as Decay + Nether. |
+
+---
+
+# 6. Nullification
+
+When a pair is nullifying:
+
+- The spell's ordinary direct/status effects still resolve.
+- Existing residue is removed.
+- The new spell leaves no residue on the affected tile.
+- The tile becomes neutral.
+
+| Element 1 | Element 2 |
 |---|---|
-|**Element**|Fire, Water, Frost, etc.|
-|**Spell**|A castable ability|
-|**Spell Shape**|Bolt, AOE, Wall, etc.|
-|**Residue**|Temporary elemental state attached to a battlefield tile|
-|**Status Effect**|Burn, Poison, Chill, etc. attached to an entity|
-|**Interaction**|Result of two elements meeting|
-|**Elemental Object**|Wall, Trap, Golem, etc.|
-|**Reaction**|The execution of an interaction|
+| Fire | Water |
+| Fire | Frost |
+| Water | Fire |
+| Water | Void |
+| Earth | Air |
+| Earth | Electro |
+| Air | Earth |
+| Air | Decay |
+| Void | Frost |
+| Void | Water |
+| Decay | Air |
+| Decay | Electro |
+| Frost | Fire |
+| Frost | Void |
+| Electro | Earth |
+| Electro | Decay |
+
+---
+
+# 7. No Interaction / Replacement
+
+Every pair not present in the Enhancement or Nullification tables is non-interactive.
+
+When this happens:
+
+1. The spell's ordinary effects resolve.
+2. Old residue is replaced.
+3. The new element becomes the tile's residue.
+
+Example:
+
+Fire residue + Dark spell
+→ Dark does not react with Fire.
+→ Fire residue becomes Dark residue.
+
+---
+
+# 8. Elemental Residue
+
+## 8.1 Basic rule
+
+Whenever a spell affects a battlefield tile, that tile normally receives the spell's elemental residue.
+
+Examples:
+
+- Fire Bolt → 1 Fire residue tile.
+- Fire AOE → 16 Fire residue tiles.
+
+Residue normally disappears at round end.
+
+## 8.2 Purpose
+
+Residue exists primarily so later elemental spells can interact with the battlefield.
+
+The core process is:
+
+Existing residue + newly applied element
+→ Elemental Resolution
+→ Enhancement / Nullification / Replacement
+
+## 8.3 Persistent exceptions
+
+### Wall
+
+- Wall element remains attached to the wall for its lifespan.
+- Wall tiles continue to carry its elemental identity.
+- The wall is treated as an elemental object rather than ordinary one-round residue.
+
+### Trap
+
+- Trap tile carries its element for the trap's lifespan.
+- The trap remains until triggered, destroyed, or otherwise removed.
+
+### Golem
+
+- Golem applies its element to tiles it moves across or interacts with during its turn.
+- If it does not move or attack, it creates no new residue.
+
+### Self and Aura
+
+Self and Aura follow normal residue rules and do not receive the persistent-object exception.
+
+---
+
+# 9. Spell Resolution
+
+## 9.1 Current formal sequence
+
+1. Caster selects a spell.
+2. Check whether the caster is allowed to cast it.
+3. Check required resources, including AP and special MP costs.
+4. Select target/location.
+5. Cast the spell.
+6. Pay the spell's AP cost.
+7. Determine affected tiles/entities.
+8. Apply the spell's immediate effects:
+   - Damage.
+   - Statuses.
+   - Movement/displacement.
+   - Shape-specific behaviour.
+9. Check existing elemental residue on each affected tile.
+10. Resolve the elemental relationship.
+11. Execute enhancements.
+12. Queue effects created by those enhancements.
+13. Write the resulting residue according to Enhancement, Nullification, or Replacement.
+14. Resolve queued chain effects after the original spell and its direct elemental resolutions finish.
+15. Return control to the caster if they can continue acting.
+
+## 9.2 Example: Fire AOE → Decay AOE
+
+### Fire AOE
+
+- Pay 1 AP.
+- Determine 16 tiles.
+- Apply Fire's normal effects.
+- No residue exists.
+- Write Fire residue to all 16 tiles.
+
+### Decay AOE
+
+- Pay 1 AP.
+- Determine 16 tiles.
+- Apply 3 Poison.
+- Check all 16 tiles.
+- Fire residue exists.
+- Fire + Decay = Corrosive Burn.
+- Resolve Corrosive Burn wherever applicable.
+- Replace affected Fire residue with Decay residue.
+
+The interaction is evaluated for all affected tiles, even if some tiles contain no entity to receive the resulting effect.
+
+---
+
+# 10. Chain Reactions
+
+## 10.1 Chain reactions are intentional
+
+Elemental interactions can initiate additional elemental interactions.
+
+This is a core part of the intended game identity.
+
+A chain can be:
+
+Spell → Residue → Interaction → New effect → New tiles → Interaction → New effect → ...
+
+Chains can be extremely powerful or can backfire.
+
+## 10.2 Chain timing
+
+A chain reaction does not interrupt the middle of the original spell's basic resolution.
+
+Order:
+
+Original spell
+→ original spell effects
+→ original residue resolutions
+→ original interaction results
+→ queue chain effects
+→ resolve queued chain effects
+→ resolve further reactions they create
+
+## 10.3 Multiple interactions in one turn
+
+A combatant can trigger multiple elemental interactions during one turn.
+
+Example:
+
+- AP 1: Fire spell.
+- AP 2: Decay spell → Corrosive Burn.
+- AP 3: Electro spell → Electrical Overload.
+
+Walls, Self spells, Traps, Golems, and other elemental objects can also participate where their rules permit.
+
+---
+
+# 11. Round and Turn Timing
+
+## 11.1 Round definition
+
+A round consists of:
+
+1. Player turn.
+2. Enemy 1 turn.
+3. Enemy 2 turn.
+4. Additional enemy turns as needed.
+5. Round-end resolution.
+6. Next round.
+
+A round ends once the player and all enemies have completed their turns.
+
+## 11.2 Turn structure
+
+### Start of turn
+- Start-of-turn effects.
+- Relevant persistent-object effects.
+- Other effects explicitly defined as starting at the beginning of the turn.
+
+### Actions
+- Movement.
+- Spell casting.
+- Other available actions.
+
+### End of turn
+- End-of-turn effects.
+- Effects explicitly defined to trigger when the entity ends its turn.
+
+## 11.3 Canonical round-end order
+
+1. Burn damage.
+2. Poison damage.
+3. Overload discharge.
+4. Shock removal.
+5. Chill decay.
+6. Residue removal.
+7. Resource refresh.
+8. Increment round counter.
+9. Start next round.
+
+---
+
+# 12. AP and MP
+
+## AP — Action Points
+
+- Default maximum: 3 AP.
+- Determines how many spells/actions an entity can perform.
+- Normal spell cost: 1 AP unless specified otherwise.
+- Cannot fall below 0.
+- Effects may increase/decrease AP.
+- Temporary/permanent modifications must specify duration.
+- Refreshed to maximum at round end.
+
+## MP — Movement Points
+
+- Default maximum: 3 MP.
+- Determines normal movement.
+- Cannot fall below 0.
+- Effects may increase/decrease MP.
+- Temporary/permanent modifications must specify duration.
+- Refreshed to maximum at round end.
+
+### Magical displacement
+
+Involuntary magical displacement does not consume MP.
+
+This intentionally allows elemental interactions to move entities beyond their normal movement capacity.
+
+---
+
+# 13. Status Effects
+
+## Burn
+
+- Damage equal to Burn stacks at round end.
+- Burn stacks then decrease by 1/3.
+
+## Poison
+
+- Round-end damage equal to half Poison stacks, rounded down.
+
+## Chill
+
+- Stacks up to 10.
+- Whenever an application causes Chill to reach 10, the target immediately becomes Frozen.
+- This check happens whenever Chill is applied, regardless of whose turn it is.
+- On reaching 10:
+  - Chill is removed.
+  - Target becomes Frozen.
+- If the target does not become Frozen, 4 Chill stacks are removed at the relevant end-of-turn cleanup.
+
+## Frozen
+
+- Entity cannot move during its turn.
+
+## Shock
+
+- Accumulates toward 20.
+- At 20, entity gains 1 Overload.
+- Shock is completely removed at round end.
+
+## Overload
+
+- Stores electrical energy.
+- At round end, discharges in a 3×3 area.
+- Damage depends on Overload stacks.
+
+## Weakening
+
+- Reduces damage dealt to 2/3 of normal.
+- Does not reduce status-type effects.
+- Applies to damage portions of spells and elemental interactions.
+
+## Blindness / Visibility
+
+Behaviour depends on the source.
+
+Examples:
+- Making enemies invisible.
+- Making the player invisible.
+- Making the affected entity remember the last known position of another entity.
+
+## MP Reduction
+
+Reduces movement capacity. Default maximum is 3 unless changed by relics or other upgrades.
+
+## AP Reduction
+
+Reduces action capacity. Default maximum is 3 unless changed by relics or other upgrades.
+
+---
+
+# 14. Damage Types
+
+## Direct
+
+Damage received immediately when a spell/effect interacts with its target.
+
+## Indirect
+
+Damage delayed until a defined timing point, such as end of turn or end of round.
+
+## Psychic
+
+Damage that affects the mind.
+
+Current intended property:
+- Not blocked by nullification.
+- Not blocked by defensive Self spell variants intended to protect against physical damage.
+
+## Bludgeon
+
+Physical blunt-force damage.
+
+Typical sources:
+- Earth magic.
+- Collision with Physical terrain.
+- Collision with Physical entities/objects.
+
+## Stabbing
+
+Physical sharp damage.
+
+Typical sources:
+- Ice shards.
+- Sharp terrain effects.
+
+## Pierce
+
+The physical counterpart to Psychic.
+
+Piercing effects trade some raw damage potential for penetration and can:
+- Penetrate certain defensive Self shapes.
+- Penetrate Physical walls/obstacles.
+- Interact with terrain that ordinary physical attacks cannot pass through.
+
+---
+
+# 15. Movement and Displacement
+
+## 15.1 Displacement
+
+Displacement is involuntary magical movement and does not consume MP.
+
+## 15.2 Collision rules
+
+### Another entity
+
+Takes Bludgeon collision damage.
+
+Exact collision damage: **TBD**.
+
+### Physical wall
+
+Takes Bludgeon collision damage.
+
+### Non-Physical wall
+
+The entity can phase into/through it according to that wall's rules and receives the wall's effect as if it entered/contacted it normally.
+
+Example: Fire Wall → Burn.
+
+### Battlefield edge
+
+The battlefield is currently intended to be surrounded by Physical walls.
+
+### Impassable tile
+
+Treat as an object with the Physical property.
+
+### Multiple obstacles
+
+No current mechanic requires a formal rule for simultaneous collision with multiple obstacles.
+
+### Newly created wall
+
+Treat the same as an existing wall.
+
+---
+
+# 16. End-of-Round Death Resolution
+
+Current rule:
+
+1. Entity receives a lethal effect.
+2. Entity dies.
+3. Death effects resolve.
+4. Already queued effects continue resolving.
+5. Entity is removed when appropriate.
+
+Effects already present on an entity continue to resolve even if that entity is already dead.
+
+This should be implemented as a deliberate queued-resolution system rather than relying only on object existence.
+
+---
+
+# 17. Deterministic Combat Randomness
+
+All combat randomness must originate from the deterministic battle/run RNG.
+
+Do not use arbitrary global random calls for combat mechanics.
+
+This applies to:
+- Random Golem target selection when targets are tied.
+- Cyclone displacement direction.
+- Lightning Storm strike locations.
+- Lightning Storm hit chances.
+- Void/self hit checks.
+- Future combat randomness.
+
+Goal:
+
+Same run seed + same player decisions + same combat state = same combat result.
+
+---
+
+# 18. Persistent Elemental Objects
+
+Persistent objects should be handled as their own system rather than ordinary one-round residue.
+
+Relevant objects include:
+- Walls.
+- Traps.
+- Golems.
+- Frozen corpses.
+- Special terrain created by interactions.
+
+## Object interaction principle
+
+An elemental object can be directly targeted by a spell where its rules allow it.
+
+Examples:
+- A Golem can be removed by directly hitting it with an appropriate spell.
+- A Trap can be triggered or otherwise interacted with according to its rules.
+- Walls can be destroyed by specific effects such as Light Laser or Earthquake where applicable.
+
+---
+
+# 19. Combat System Architecture
+
+The elemental design should not be placed entirely inside BattleManager or TurnManager.
+
+The intended architecture is:
+
+    BattleManager
+    ├── TurnManager
+    ├── Action / Spell System
+    ├── ElementSystem
+    ├── StatusSystem
+    ├── Battlefield / Grid
+    ├── Combatants
+    └── Battle / Run RNG
+
+## BattleManager
+
+Coordinates the battle as a whole:
+- Battle state.
+- System coordination.
+- Battle start/end.
+- High-level phase control.
+
+It should not contain every elemental rule.
+
+## TurnManager
+
+Responsible for:
+- Whose turn it is.
+- Turn transitions.
+- Round transitions.
+- Start/end turn notifications.
+- Start/end round notifications.
+
+It should not implement Burn, Poison, elemental interactions, spell geometry, etc.
+
+## Action / Spell System
+
+Responsible for:
+- Validating actions.
+- Paying AP/MP costs.
+- Determining affected tiles.
+- Executing spell behaviour.
+- Sending resulting effects into the appropriate systems.
+
+## ElementSystem
+
+Responsible for:
+- Elemental residue.
+- Enhancement lookup.
+- Nullification lookup.
+- Replacement lookup.
+- Elemental resolution.
+- Interaction execution.
+- Chain-reaction queuing.
+
+## StatusSystem
+
+Responsible for:
+- Applying/removing statuses.
+- Status thresholds.
+- Start/end turn status effects.
+- Round-end status effects.
+- Death-related status resolution.
+
+## Battlefield / Grid
+
+Responsible for:
+- Tile occupancy.
+- Terrain.
+- Obstacles.
+- Physical properties.
+- Spatial queries.
+- Movement/pathing support.
+
+## Combatants
+
+Responsible for:
+- HP.
+- AP/MP state.
+- Position.
+- Personal buffs/debuffs.
+- Available spells.
+- Turn-specific state.
+
+## RNG
+
+Responsible for deterministic combat randomness.
+
+---
+
+# 20. Recommended High-Level Combat Flow
+
+    BattleManager
+        ↓
+    TurnManager starts turn
+        ↓
+    Start-of-turn effects
+        ↓
+    Combatant acts
+        ↓
+    Action / Spell System
+        ↓
+    Validate action
+        ↓
+    Pay resources
+        ↓
+    Determine affected tiles/entities
+        ↓
+    Apply immediate spell effects
+        ↓
+    ElementSystem checks residue
+        ↓
+    Elemental Resolution
+        ├── Enhancement
+        ├── Nullification
+        └── Replacement
+        ↓
+    Queue chain reactions
+        ↓
+    Resolve queued chain reactions
+        ↓
+    Return control to combatant
+        ↓
+    End turn
+        ↓
+    Next combatant
+        ↓
+    Round end
+        ↓
+    Status round-end resolution
+        ↓
+    Burn
+        ↓
+    Poison
+        ↓
+    Overload
+        ↓
+    Shock cleanup
+        ↓
+    Chill cleanup
+        ↓
+    Residue cleanup
+        ↓
+    Resource refresh
+        ↓
+    Next round
+
+---
+
+# 21. Elemental Resolution Algorithm
+
+    New elemental effect reaches tile
+                ↓
+        Does tile have residue?
+           /             \
+         No               Yes
+         ↓                 ↓
+    Write new        Compare old + new
+    residue                ↓
+                 ┌─────────┼─────────┐
+                 ↓         ↓         ↓
+            Enhancement Nullification Replacement
+                 ↓         ↓         ↓
+               React    Clear tile   Replace old
+                 ↓         ↓         ↓
+            New effects Neutral     New residue
+                 ↓
+          Queue chain effects
+
+---
+
+# 22. Element Acquisition and Shrines
+
+## Starting elements
+
+The starting wizard provides one Layer 1 element:
+- Fire
+- Earth
+- Water
+- Air
+
+## Upgrading elements
+
+Shrines offer three choices.
+
+The left-most option attempts to provide an upgrade.
+
+An upgrade can:
+- Advance an element to the next layer.
+- Provide a perk.
+
+Example:
+
+Fire → Void → Dark
+
+Taking a perk on an element locks that element from further elemental advancement.
+
+## Duplicate elements
+
+Duplicate elements are not allowed.
+
+If an element is already owned elsewhere, the Shrine cannot provide that same element as another elemental upgrade.
+
+The Shrine attempts to provide at least one valid upgrade. Other options are randomised.
+
+If all three spell slots are already infused with elements, Shrine offerings are restricted to those existing elements.
+
+## Perks
+
+Perks modify elemental behaviour rather than simply increasing base damage.
+
+A perk can:
+- Modify a status.
+- Change spell behaviour.
+- Add/change an interaction.
+- Change an elemental characteristic.
+- Create a new tactical use.
+
+Example concept:
+
+A Frost perk could make Frozen targets take damage in addition to being unable to move.
+
+The detailed perk catalogue still needs to be designed.
+
+---
+
+# 23. Open Decisions / Explicit TBDs
+
+These are intentionally separated from established rules so unfinished ideas do not become accidental implementation requirements.
+
+## Combat / elemental rules
+
+- Exact interaction behaviour for every persistent object in every edge case.
+- Exact collision damage when displacement hits an entity/object.
+- Exact handling when multiple obstacles could theoretically be collided with simultaneously.
+- More detailed defence rules for Psychic and Pierce.
+- Exact implementation of some interaction-generated terrain/effects.
+- Full formalisation of queued chain-reaction data structures.
+- Exact Golem initial-action timing: immediately on summon vs start of summoner's next turn.
+
+## Balance / content
+
+- Implosion pull positioning details.
+- Lightning Storm detailed strike selection/repeated-hit behaviour.
+- Conductive Surge damage falloff beyond the current example.
+- Future perk values and catalogue.
+- Shrine/perk catalogue.
+- Encounter/boss balancing.
+- Event encounter design.
+
+---
+
+# 24. Historical Notes
+
+The original brainstorming process contained questions such as:
+- Does every pair of elements need an explicit result?
+- Can a tile contain multiple elemental residue?
+- Exactly when does an interaction trigger?
+- Can interactions chain?
+- How do AP/MP refresh?
+- How do damage types interact with defenses?
+
+Decisions have now been made for most of these and converted into explicit rules above.
+
+Older brainstorming wording should not be treated as a second source of truth. If an older note conflicts with this document, this document takes priority unless the newer design is explicitly changed again.
+
+---
+
+# 25. Encounter Types Reference
+
+This section is retained for completeness but is separate from the elemental combat rules.
+
+## Combat
+
+Normal battle encounter. Winning provides money for Shops. If player HP reaches 0, the run ends.
+
+## Elite
+
+Stronger combat encounter with greater rewards. Current intended difficulty target: approximately 1.5×–2× normal combat.
+
+## Shrine
+
+Allows elemental progression and perks. Spell shapes cannot be swapped during the run; preparation happens before the run.
+
+## Shop
+
+Allows spending money on Relics and health.
+
+## Event
+
+TBD.
+
+## Rest
+
+Restores approximately 25% of maximum HP.
+
+## Mystery
+
+The encounter type is hidden until entered.
+
+Current intended outcomes:
+- Shrine
+- Shop
+- Rest
+- Treasure
+- Combat
+- Elite
+- Trap
+
+The intended distribution is slightly more positive than negative.
+
+## Treasure
+
+Provides Relics.
+
+## Trap
+
+Currently only encountered through Mystery. Deals 7.5% of maximum HP.
+
+## Boss
+
+Final encounter of a floor. Current intended difficulty: approximately 3×–4× normal combat.
+
+Boss elemental design depends on the player's starting class/element.
+
+Difficulty intent:
+- **Easy:** Boss uses elemental spells that are countered by the player's build.
+- **Normal:** Boss receives random spells plus relics/boosters.
+- **Hard:** Boss receives spells designed to counter the player's build plus relics.
+
+---
+
+# 26. Implementation Principle
+
+Implement the elemental system from the rules in this document rather than translating the brainstorming history directly into code.
+
+The most important boundaries are:
+
+1. **TurnManager controls time.**
+2. **Action/Spell System controls actions and spell execution.**
+3. **ElementSystem controls elemental resolution and chain reactions.**
+4. **StatusSystem controls statuses and their timing.**
+5. **Battlefield/Grid controls spatial state.**
+6. **Combatants own personal combat state.**
+7. **Battle/Run RNG controls combat randomness.**
+8. **BattleManager coordinates the systems instead of containing all their rules.**
+
+The intended result is a combat system where complex elemental interactions can grow without turning BattleManager or TurnManager into giant, unmaintainable classes.
